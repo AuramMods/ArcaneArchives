@@ -1,6 +1,7 @@
 package com.aranaira.arcanearchives.client;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.config.ArchiveConfig;
 import com.aranaira.arcanearchives.crafting.GemCuttersTableMenu;
 import com.aranaira.arcanearchives.crafting.GemCuttingRecipe;
 import com.aranaira.arcanearchives.storage.ArchiveNetwork;
@@ -19,6 +20,7 @@ import java.util.Optional;
 
 public final class GemCuttersTableScreen extends AbstractContainerScreen<GemCuttersTableMenu> {
     private static final ResourceLocation BACKGROUND = ArcaneArchives.id("textures/gui/gemcutterstable.png");
+    private static final ResourceLocation SIMPLE_BACKGROUND = ArcaneArchives.id("textures/gui/simple/gemcutterstable.png");
     private static final int RECIPES_PER_PAGE = 7;
     private static final int FIRST_RECIPE_X = 41;
     private static final int RECIPE_Y = 70;
@@ -75,7 +77,8 @@ public final class GemCuttersTableScreen extends AbstractContainerScreen<GemCutt
 
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(BACKGROUND, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        ResourceLocation background = ArchiveConfig.PRETTY_GUIS.get() ? BACKGROUND : SIMPLE_BACKGROUND;
+        graphics.blit(background, leftPos, topPos, 0, 0, imageWidth, imageHeight);
         List<GemCuttingRecipe> recipes = menu.recipes();
         for (int slot = 0; slot < visibleCraftable.size(); slot++) {
             int index = page * RECIPES_PER_PAGE + slot;
@@ -86,7 +89,7 @@ public final class GemCuttersTableScreen extends AbstractContainerScreen<GemCutt
             int y = topPos + RECIPE_Y;
             ItemStack result = recipes.get(index).getResultItem(minecraft.level.registryAccess());
             if (index == selection) {
-                graphics.blit(BACKGROUND, x - 2, y - 2, 206, 0, 20, 20);
+                graphics.blit(background, x - 2, y - 2, 206, 0, 20, 20);
             }
             graphics.renderItem(result, x, y);
             graphics.renderItemDecorations(font, result, x, y);
@@ -98,7 +101,9 @@ public final class GemCuttersTableScreen extends AbstractContainerScreen<GemCutt
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(font, title, (imageWidth - font.width(title)) / 2, 4, 0xFFE7CC, false);
+        boolean pretty = ArchiveConfig.PRETTY_GUIS.get();
+        graphics.drawString(font, title, (imageWidth - font.width(title)) / 2,
+                pretty ? 4 : 7, pretty ? 0xFFE7CC : 0x404040, false);
     }
 
     private void renderRecipeTooltip(GuiGraphics graphics, int slot, int mouseX, int mouseY) {

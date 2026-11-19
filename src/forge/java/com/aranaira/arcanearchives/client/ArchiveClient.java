@@ -25,6 +25,7 @@ public final class ArchiveClient {
         event.enqueueWork(() -> {
             MenuScreens.register(ArcaneArchives.RADIANT_CHEST_MENU.get(), RadiantChestScreen::new);
             MenuScreens.register(ArcaneArchives.GEMCUTTERS_TABLE_MENU.get(), GemCuttersTableScreen::new);
+            MenuScreens.register(ArcaneArchives.RADIANT_CRAFTING_TABLE_MENU.get(), RadiantCraftingTableScreen::new);
             ItemProperties.register(ArcaneArchives.RADIANT_AMPHORA.get(), ArcaneArchives.id("amphora_mode"),
                     (stack, level, entity, seed) -> RadiantAmphoraItem.linked(stack)
                             ? (RadiantAmphoraItem.drainMode(stack) ? 2.0F : 1.0F) : 0.0F);

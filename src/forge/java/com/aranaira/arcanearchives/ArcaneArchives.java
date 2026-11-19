@@ -5,6 +5,9 @@ import com.aranaira.arcanearchives.crafting.GemCuttersTableBlock;
 import com.aranaira.arcanearchives.crafting.GemCuttersTableBlockEntity;
 import com.aranaira.arcanearchives.crafting.GemCuttersTableMenu;
 import com.aranaira.arcanearchives.crafting.GemCuttingRecipe;
+import com.aranaira.arcanearchives.crafting.RadiantCraftingTableBlock;
+import com.aranaira.arcanearchives.crafting.RadiantCraftingTableBlockEntity;
+import com.aranaira.arcanearchives.crafting.RadiantCraftingTableMenu;
 import com.aranaira.arcanearchives.progression.DirectionalQuartzBlock;
 import com.aranaira.arcanearchives.progression.QuartzSliverBlock;
 import com.aranaira.arcanearchives.progression.RadiantResonatorBlock;
@@ -27,6 +30,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -164,6 +168,16 @@ public final class ArcaneArchives {
             RECIPE_TYPES.register("gem_cutting", () -> RecipeType.simple(id("gem_cutting")));
     public static final RegistryObject<RecipeSerializer<GemCuttingRecipe>> GEM_CUTTING_SERIALIZER =
             RECIPE_SERIALIZERS.register("gem_cutting", GemCuttingRecipe.Serializer::new);
+    public static final RegistryObject<RadiantCraftingTableBlock> RADIANT_CRAFTING_TABLE = BLOCKS.register("radiant_crafting_table",
+            () -> new RadiantCraftingTableBlock(BlockBehaviour.Properties.of().strength(3.0F).sound(SoundType.GLASS)
+                    .lightLevel(state -> 15).noOcclusion()));
+    public static final RegistryObject<Item> RADIANT_CRAFTING_TABLE_ITEM = ITEMS.register("radiant_crafting_table",
+            () -> new BlockItem(RADIANT_CRAFTING_TABLE.get(), new Item.Properties()));
+    public static final RegistryObject<BlockEntityType<RadiantCraftingTableBlockEntity>> RADIANT_CRAFTING_TABLE_ENTITY =
+            BLOCK_ENTITIES.register("radiantcraftingtable", () -> BlockEntityType.Builder
+                    .of(RadiantCraftingTableBlockEntity::new, RADIANT_CRAFTING_TABLE.get()).build(null));
+    public static final RegistryObject<MenuType<RadiantCraftingTableMenu>> RADIANT_CRAFTING_TABLE_MENU =
+            MENUS.register("radiant_crafting_table", () -> new MenuType<>(RadiantCraftingTableMenu::new, FeatureFlags.DEFAULT_FLAGS));
 
     static {
         TABS.register(ID, () -> CreativeModeTab.builder()
@@ -176,6 +190,7 @@ public final class ArcaneArchives {
                     output.accept(QUARTZ_SLIVER_ITEM.get());
                     output.accept(RADIANT_LANTERN_ITEM.get());
                     output.accept(GEMCUTTERS_TABLE_ITEM.get());
+                    output.accept(RADIANT_CRAFTING_TABLE_ITEM.get());
                     output.accept(STORAGE_RAW_QUARTZ_ITEM.get());
                     output.accept(STORAGE_SHAPED_QUARTZ_ITEM.get());
                     output.accept(SHAPED_QUARTZ.get());

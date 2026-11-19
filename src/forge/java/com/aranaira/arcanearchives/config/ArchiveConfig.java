@@ -19,6 +19,7 @@ public final class ArchiveConfig {
     public static final ForgeConfigSpec.IntValue SLIVER_CLUSTER_MAX;
     public static final ForgeConfigSpec.BooleanValue RESONATOR_LOOP_ENABLED;
     public static final ForgeConfigSpec.DoubleValue RESONATOR_LOOP_VOLUME;
+    public static final ForgeConfigSpec.BooleanValue PRETTY_GUIS;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -49,6 +50,8 @@ public final class ArchiveConfig {
                 .define("resonatorTicking", true);
         RESONATOR_LOOP_VOLUME = client.comment("Volume of the Radiant Resonator's loop.")
                 .defineInRange("resonatorVolume", 0.15, 0.0, 1.0);
+        PRETTY_GUIS = client.comment("Use the decorated Arcane Archives inventory backgrounds.")
+                .define("usePrettyGUIs", true);
         CLIENT_SPEC = client.build();
     }
 

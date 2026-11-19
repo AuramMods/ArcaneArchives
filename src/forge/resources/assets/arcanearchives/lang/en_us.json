@@ -28,5 +28,11 @@
   "item.arcanearchives.containment_field": "Containment Field",
   "block.arcanearchives.gemcutters_table": "Gem Cutter's Table",
   "gui.arcanearchives.gem_cutting.ingredient": "%s × %s",
-  "gui.arcanearchives.gem_cutting.missing_ingredient": "Unavailable ingredient"
+  "gui.arcanearchives.gem_cutting.missing_ingredient": "Unavailable ingredient",
+  "block.arcanearchives.radiant_crafting_table": "Radiant Crafting Table",
+  "gui.arcanearchives.radiant_crafting.bookmark.save": "Click to save the current recipe",
+  "gui.arcanearchives.radiant_crafting.bookmark.save_last": "Shift-click to save the last crafted recipe",
+  "gui.arcanearchives.radiant_crafting.bookmark.craft": "Click to craft from the grid and inventory",
+  "gui.arcanearchives.radiant_crafting.bookmark.missing": "Recipe unavailable with the current ingredients",
+  "gui.arcanearchives.radiant_crafting.bookmark.clear": "Shift-click to clear the saved recipe"
 }
