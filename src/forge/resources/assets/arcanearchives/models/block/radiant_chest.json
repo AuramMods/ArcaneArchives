@@ -1,0 +1,9 @@
+{
+  "loader": "forge:obj",
+  "model": "arcanearchives:models/block/radiant_chest.obj",
+  "flip_v": true,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "particle": "arcanearchives:blocks/block_radiantchest_quartz"
+  }
+}

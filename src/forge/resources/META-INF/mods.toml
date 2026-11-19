@@ -1,0 +1,25 @@
+modLoader = "javafml"
+loaderVersion = "[47,48)"
+license = "MIT"
+
+[[mods]]
+modId = "arcanearchives"
+version = "${mod_version}"
+displayName = "Arcane Archives"
+displayURL = "https://www.curseforge.com/minecraft/mc-mods/arcane-archives"
+authors = "AranaiRa, Noobanidus, Lirelent, Lenyeto"
+description = "Magical storage and automation powered by radiant quartz."
+
+[[dependencies.arcanearchives]]
+modId = "forge"
+mandatory = true
+versionRange = "[47,48)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.arcanearchives]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.20.1]"
+ordering = "NONE"
+side = "BOTH"
