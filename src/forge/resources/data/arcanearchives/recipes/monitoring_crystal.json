@@ -1,0 +1,28 @@
+{
+  "type": "arcanearchives:gem_cutting",
+  "order": 110,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "arcanearchives:shaped_quartz"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "forge:nuggets/gold"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "tag": "forge:rods/wooden"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "item": "arcanearchives:monitoring_crystal",
+    "count": 1
+  }
+}

@@ -9,6 +9,7 @@
     "arcanearchives:storage_raw_quartz",
     "arcanearchives:storage_shaped_quartz",
     "arcanearchives:radiant_lantern",
-    "arcanearchives:radiant_crafting_table"
+    "arcanearchives:radiant_crafting_table",
+    "arcanearchives:monitoring_crystal"
   ]
 }

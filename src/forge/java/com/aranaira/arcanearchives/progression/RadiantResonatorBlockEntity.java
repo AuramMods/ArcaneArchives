@@ -64,6 +64,23 @@ public final class RadiantResonatorBlockEntity extends ArchiveDeviceBlockEntity 
         return online && !isRemoved() && level != null && level.isEmptyBlock(worldPosition.above());
     }
 
+    public int percentGrown() {
+        return (int) Math.min(100, 100.0 * growth / ArchiveConfig.RESONATOR_TICKS.get());
+    }
+
+    public GrowthStatus growthStatus() {
+        if (level != null) {
+            BlockState above = level.getBlockState(worldPosition.above());
+            if (above.is(ArcaneArchives.RAW_QUARTZ_CLUSTER.get())) {
+                return GrowthStatus.HARVESTABLE;
+            }
+            if (!above.isAir()) {
+                return GrowthStatus.OBSTRUCTED;
+            }
+        }
+        return online ? GrowthStatus.RESONATING : GrowthStatus.OFFLINE;
+    }
+
     int comparatorSignal() {
         if (level == null) {
             return 0;
@@ -102,5 +119,19 @@ public final class RadiantResonatorBlockEntity extends ArchiveDeviceBlockEntity 
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         tag.putInt("current_tick", growth);
+    }
+
+    public enum GrowthStatus {
+        HARVESTABLE("harvestable"), OBSTRUCTED("obstruction"), RESONATING("resonating"), OFFLINE("offline");
+
+        private final String key;
+
+        GrowthStatus(String key) {
+            this.key = key;
+        }
+
+        public String key() {
+            return key;
+        }
     }
 }

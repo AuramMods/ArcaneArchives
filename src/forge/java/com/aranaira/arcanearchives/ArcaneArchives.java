@@ -8,6 +8,9 @@ import com.aranaira.arcanearchives.crafting.GemCuttingRecipe;
 import com.aranaira.arcanearchives.crafting.RadiantCraftingTableBlock;
 import com.aranaira.arcanearchives.crafting.RadiantCraftingTableBlockEntity;
 import com.aranaira.arcanearchives.crafting.RadiantCraftingTableMenu;
+import com.aranaira.arcanearchives.monitoring.MonitoringCrystalBlock;
+import com.aranaira.arcanearchives.monitoring.MonitoringCrystalBlockEntity;
+import com.aranaira.arcanearchives.monitoring.RevelationScepterItem;
 import com.aranaira.arcanearchives.progression.DirectionalQuartzBlock;
 import com.aranaira.arcanearchives.progression.QuartzSliverBlock;
 import com.aranaira.arcanearchives.progression.RadiantResonatorBlock;
@@ -178,6 +181,16 @@ public final class ArcaneArchives {
                     .of(RadiantCraftingTableBlockEntity::new, RADIANT_CRAFTING_TABLE.get()).build(null));
     public static final RegistryObject<MenuType<RadiantCraftingTableMenu>> RADIANT_CRAFTING_TABLE_MENU =
             MENUS.register("radiant_crafting_table", () -> new MenuType<>(RadiantCraftingTableMenu::new, FeatureFlags.DEFAULT_FLAGS));
+    public static final RegistryObject<MonitoringCrystalBlock> MONITORING_CRYSTAL = BLOCKS.register("monitoring_crystal",
+            () -> new MonitoringCrystalBlock(BlockBehaviour.Properties.of().strength(0.8F).sound(SoundType.GLASS)
+                    .lightLevel(state -> 15).noCollission().noOcclusion()));
+    public static final RegistryObject<Item> MONITORING_CRYSTAL_ITEM = ITEMS.register("monitoring_crystal",
+            () -> new MonitoringCrystalBlock.CrystalItem(MONITORING_CRYSTAL.get(), new Item.Properties()));
+    public static final RegistryObject<BlockEntityType<MonitoringCrystalBlockEntity>> MONITORING_CRYSTAL_ENTITY =
+            BLOCK_ENTITIES.register("monitoring_crystal_tile_entity", () -> BlockEntityType.Builder
+                    .of(MonitoringCrystalBlockEntity::new, MONITORING_CRYSTAL.get()).build(null));
+    public static final RegistryObject<Item> SCEPTER_REVELATION = ITEMS.register("scepter_revelation",
+            () -> new RevelationScepterItem(new Item.Properties().stacksTo(1)));
 
     static {
         TABS.register(ID, () -> CreativeModeTab.builder()
@@ -204,6 +217,8 @@ public final class ArcaneArchives {
                     output.accept(RADIANT_TANK_ITEM.get());
                     output.accept(BRAZIER_ITEM.get());
                     output.accept(RADIANT_AMPHORA.get());
+                    output.accept(MONITORING_CRYSTAL_ITEM.get());
+                    output.accept(SCEPTER_REVELATION.get());
                 })
                 .build());
     }

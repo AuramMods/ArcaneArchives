@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "  R",
+    " G ",
+    "S  "
+  ],
+  "key": {
+    "R": {
+      "item": "arcanearchives:raw_quartz"
+    },
+    "G": {
+      "tag": "forge:nuggets/gold"
+    },
+    "S": {
+      "tag": "forge:rods/wooden"
+    }
+  },
+  "result": {
+    "item": "arcanearchives:scepter_revelation"
+  }
+}
