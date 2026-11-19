@@ -4,6 +4,7 @@ import net.minecraftforge.common.ForgeConfigSpec;
 
 public final class ArchiveConfig {
     public static final ForgeConfigSpec SERVER_SPEC;
+    public static final ForgeConfigSpec CLIENT_SPEC;
     public static final ForgeConfigSpec.IntValue RADIANT_MULTIPLIER;
     public static final ForgeConfigSpec.BooleanValue TROVES_DISPENSE_STACK;
     public static final ForgeConfigSpec.BooleanValue CHESTS_EXISTING_ITEMS_ONLY;
@@ -16,6 +17,8 @@ public final class ArchiveConfig {
     public static final ForgeConfigSpec.IntValue SLIVER_CLUSTER_CHANCE;
     public static final ForgeConfigSpec.IntValue SLIVER_CLUSTER_MIN;
     public static final ForgeConfigSpec.IntValue SLIVER_CLUSTER_MAX;
+    public static final ForgeConfigSpec.BooleanValue RESONATOR_LOOP_ENABLED;
+    public static final ForgeConfigSpec.DoubleValue RESONATOR_LOOP_VOLUME;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -40,6 +43,13 @@ public final class ArchiveConfig {
         SLIVER_CLUSTER_MIN = builder.defineInRange("sliverClusterMinimum", 8, 1, 4096);
         SLIVER_CLUSTER_MAX = builder.defineInRange("sliverClusterMaximum", 24, 1, 4096);
         SERVER_SPEC = builder.build();
+
+        ForgeConfigSpec.Builder client = new ForgeConfigSpec.Builder();
+        RESONATOR_LOOP_ENABLED = client.comment("Play the ongoing sound while a Radiant Resonator grows quartz.")
+                .define("resonatorTicking", true);
+        RESONATOR_LOOP_VOLUME = client.comment("Volume of the Radiant Resonator's loop.")
+                .defineInRange("resonatorVolume", 0.15, 0.0, 1.0);
+        CLIENT_SPEC = client.build();
     }
 
     private ArchiveConfig() {}

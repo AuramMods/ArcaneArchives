@@ -33,7 +33,7 @@ public final class RadiantResonatorBlock extends BaseEntityBlock {
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return level.isClientSide ? null : createTickerHelper(type, ArcaneArchives.RADIANT_RESONATOR_ENTITY.get(), RadiantResonatorBlockEntity::tick);
+        return createTickerHelper(type, ArcaneArchives.RADIANT_RESONATOR_ENTITY.get(), RadiantResonatorBlockEntity::tick);
     }
 
     @Override

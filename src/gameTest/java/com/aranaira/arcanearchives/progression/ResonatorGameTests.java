@@ -39,15 +39,22 @@ public final class ResonatorGameTests {
         resonator.bindTo(UUID.randomUUID());
         resonator.advance(test.getLevel(), false);
         test.assertTrue(test.getBlockState(pos.above()).isAir(), "An offline owner should pause growth");
+        test.assertTrue(!resonator.getUpdateTag().getBoolean("can_tick"), "An offline owner must not start the client loop");
 
         test.setBlock(pos.above(), Blocks.STONE);
         resonator.advance(test.getLevel(), true);
         test.assertTrue(resonator.saveWithoutMetadata().getInt("current_tick") == required - 1 && resonator.comparatorSignal() == 0,
                 "An obstruction should pause growth and suppress the comparator signal");
+        test.assertTrue(!resonator.isResonating(), "An obstruction must stop the loop");
         test.setBlock(pos.above(), Blocks.AIR);
+        var replica = new RadiantResonatorBlockEntity(resonator.getBlockPos(), resonator.getBlockState());
+        replica.setLevel(test.getLevel());
+        replica.load(resonator.getUpdateTag());
+        test.assertTrue(replica.isResonating(), "The update tag should enable the loop for clients when the owner is online");
         resonator.advance(test.getLevel(), true);
         test.assertTrue(test.getBlockState(pos.above()).is(ArcaneArchives.RAW_QUARTZ_CLUSTER.get()) && resonator.comparatorSignal() == 15,
                 "The Resonator should grow a harvestable Raw Quartz Cluster");
+        test.assertTrue(!replica.isResonating(), "A ready quartz cluster must stop the loop");
 
         BlockPos cluster = test.absolutePos(pos.above());
         ItemStack tool = new ItemStack(Items.DIAMOND_PICKAXE);

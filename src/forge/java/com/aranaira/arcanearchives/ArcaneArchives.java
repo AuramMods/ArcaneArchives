@@ -118,6 +118,8 @@ public final class ArcaneArchives {
                     .of(RadiantResonatorBlockEntity::new, RADIANT_RESONATOR.get()).build(null));
     public static final RegistryObject<SoundEvent> RESONATOR_COMPLETE = SOUNDS.register("resonator.complete",
             () -> SoundEvent.createVariableRangeEvent(id("resonator.complete")));
+    public static final RegistryObject<SoundEvent> RESONATOR_LOOP = SOUNDS.register("resonator.loop",
+            () -> SoundEvent.createVariableRangeEvent(id("resonator.loop")));
     public static final RegistryObject<DirectionalQuartzBlock> RAW_QUARTZ_CLUSTER = BLOCKS.register("raw_quartz_cluster",
             () -> new DirectionalQuartzBlock(BlockBehaviour.Properties.of().strength(1.4F).sound(SoundType.STONE)
                     .lightLevel(state -> 15).requiresCorrectToolForDrops().noOcclusion()));
@@ -205,6 +207,7 @@ public final class ArcaneArchives {
         MinecraftForge.EVENT_BUS.addListener(RadiantAmphoraItem::onLeftClickBlock);
         MinecraftForge.EVENT_BUS.addListener(RawQuartzItem::bashOnBlock);
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ArchiveConfig.SERVER_SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ArchiveConfig.CLIENT_SPEC);
         ArchiveNetwork.register();
     }
 

@@ -1,10 +1,12 @@
 package com.aranaira.arcanearchives.progression;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.client.ResonatorLoopSound;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
 import com.aranaira.arcanearchives.network.ArchiveDeviceBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.animal.Ocelot;
@@ -12,6 +14,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 
 public final class RadiantResonatorBlockEntity extends ArchiveDeviceBlockEntity {
     private int growth;
@@ -25,13 +29,17 @@ public final class RadiantResonatorBlockEntity extends ArchiveDeviceBlockEntity 
         if (level instanceof ServerLevel serverLevel) {
             boolean ownerOnline = resonator.owner() != null && serverLevel.getServer().getPlayerList().getPlayer(resonator.owner()) != null;
             resonator.advance(serverLevel, ownerOnline);
+        } else if (level.isClientSide && resonator.isResonating()) {
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ResonatorLoopSound.startIfNeeded(resonator));
         }
     }
 
     void advance(ServerLevel level, boolean ownerOnline) {
         if (online != ownerOnline) {
             online = ownerOnline;
-            level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
+            BlockState state = getBlockState();
+            level.updateNeighbourForOutputSignal(worldPosition, state.getBlock());
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
         }
         BlockPos above = worldPosition.above();
         if (!online || !level.isEmptyBlock(above)) {
@@ -52,6 +60,10 @@ public final class RadiantResonatorBlockEntity extends ArchiveDeviceBlockEntity 
         setChanged();
     }
 
+    public boolean isResonating() {
+        return online && !isRemoved() && level != null && level.isEmptyBlock(worldPosition.above());
+    }
+
     int comparatorSignal() {
         if (level == null) {
             return 0;
@@ -70,6 +82,20 @@ public final class RadiantResonatorBlockEntity extends ArchiveDeviceBlockEntity 
     public void load(CompoundTag tag) {
         super.load(tag);
         growth = Math.max(0, tag.getInt("current_tick"));
+        online = tag.getBoolean("can_tick");
+    }
+
+    @Override
+    public CompoundTag getUpdateTag() {
+        CompoundTag tag = new CompoundTag();
+        tag.putInt("current_tick", growth);
+        tag.putBoolean("can_tick", online);
+        return tag;
+    }
+
+    @Override
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override
