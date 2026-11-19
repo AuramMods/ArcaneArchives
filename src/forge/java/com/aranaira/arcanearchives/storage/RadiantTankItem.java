@@ -8,6 +8,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
 
@@ -21,13 +22,33 @@ public final class RadiantTankItem extends BlockItem {
 
     @Override
     public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag tag) {
-        return new FluidHandlerItemStack(stack, RadiantTankBlockEntity.BASE_CAPACITY);
+        return new FluidHandlerItemStack(stack, RadiantTankBlockEntity.BASE_CAPACITY) {
+            @Override
+            public int getTankCapacity(int tank) {
+                return capacity(stack);
+            }
+
+            @Override
+            public int fill(FluidStack fluid, FluidAction action) {
+                capacity = capacity(stack);
+                return super.fill(fluid, action);
+            }
+        };
     }
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
-        FluidUtil.getFluidContained(stack).ifPresent(fluid -> tooltip.add(Component.translatable(
-                "tooltip.arcanearchives.radiant_tank.contents", fluid.getDisplayName(), fluid.getAmount(),
-                RadiantTankBlockEntity.BASE_CAPACITY)));
+        var fluid = FluidUtil.getFluidContained(stack);
+        if (fluid.isPresent()) {
+            FluidStack stored = fluid.get();
+            tooltip.add(Component.translatable("tooltip.arcanearchives.radiant_tank.contents",
+                    stored.getDisplayName(), stored.getAmount(), capacity(stack)));
+        } else if (stack.getTagElement(StorageUpgrades.SIZE_TAG) != null) {
+            tooltip.add(Component.translatable("tooltip.arcanearchives.radiant_tank.capacity", capacity(stack)));
+        }
+    }
+
+    private static int capacity(ItemStack stack) {
+        return RadiantTankBlockEntity.BASE_CAPACITY * StorageUpgrades.portableMultiplier(stack.getTag());
     }
 }

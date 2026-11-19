@@ -26,11 +26,26 @@ public final class RadiantTankBlockEntity extends PortableStorageBlockEntity {
     private LazyOptional<IFluidHandler> fluidHandler = LazyOptional.of(() -> tank);
 
     public RadiantTankBlockEntity(BlockPos pos, BlockState state) {
-        super(ArcaneArchives.RADIANT_TANK_ENTITY.get(), pos, state, FluidHandlerItemStack.FLUID_NBT_KEY);
+        super(ArcaneArchives.RADIANT_TANK_ENTITY.get(), pos, state, FluidHandlerItemStack.FLUID_NBT_KEY, true);
     }
 
     public FluidTank tank() {
         return tank;
+    }
+
+    @Override
+    int storedAmount() {
+        return tank.getFluidAmount();
+    }
+
+    @Override
+    int capacityWithMultiplier(int multiplier) {
+        return BASE_CAPACITY * multiplier;
+    }
+
+    @Override
+    void applyCapacity() {
+        tank.setCapacity(capacityWithMultiplier(upgrades().multiplier()));
     }
 
     @Override

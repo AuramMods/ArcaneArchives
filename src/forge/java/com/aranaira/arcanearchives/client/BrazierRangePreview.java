@@ -31,7 +31,7 @@ final class BrazierRangePreview {
     }
 
     static void render(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL || VISIBLE.isEmpty()) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES || VISIBLE.isEmpty()) {
             return;
         }
         Minecraft client = Minecraft.getInstance();

@@ -12,7 +12,8 @@
               "function": "minecraft:copy_nbt",
               "source": "block_entity",
               "ops": [
-                { "source": "Fluid", "target": "Fluid", "op": "replace" }
+                { "source": "Fluid", "target": "Fluid", "op": "replace" },
+                { "source": "size_upgrades", "target": "size_upgrades", "op": "replace" }
               ]
             }
           ]

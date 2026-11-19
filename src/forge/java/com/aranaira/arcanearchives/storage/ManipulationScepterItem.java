@@ -27,7 +27,19 @@ public final class ManipulationScepterItem extends Item {
     public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        if (!(level.getBlockEntity(pos) instanceof BrazierBlockEntity brazier)) {
+        var entity = level.getBlockEntity(pos);
+        if (entity instanceof PortableStorageBlockEntity storage) {
+            if (context.getPlayer() instanceof ServerPlayer player) {
+                NetworkHooks.openScreen(player, new SimpleMenuProvider((id, inventory, viewer) ->
+                        new StorageUpgradesMenu(id, inventory, storage), storage.getBlockState().getBlock().getName()),
+                        buffer -> {
+                            buffer.writeBlockPos(pos);
+                            buffer.writeBoolean(storage instanceof RadiantTankBlockEntity);
+                        });
+            }
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
+        if (!(entity instanceof BrazierBlockEntity brazier)) {
             return InteractionResult.PASS;
         }
         if (context.getPlayer() instanceof ServerPlayer player) {

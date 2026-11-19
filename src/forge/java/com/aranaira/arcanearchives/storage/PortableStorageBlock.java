@@ -26,7 +26,7 @@ abstract class PortableStorageBlock extends BaseEntityBlock {
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof PortableStorageBlockEntity storage) {
-            CompoundTag contents = stack.getTagElement(storage.storageKey());
+            CompoundTag contents = stack.getTag();
             if (contents != null) {
                 storage.restorePortableContents(contents);
             }

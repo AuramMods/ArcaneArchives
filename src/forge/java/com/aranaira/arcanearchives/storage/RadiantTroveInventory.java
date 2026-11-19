@@ -4,15 +4,19 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
+import java.util.function.IntSupplier;
+
 public final class RadiantTroveInventory implements IItemHandler {
     public static final int BASE_CAPACITY = 64 * 512;
 
     private final Runnable onChange;
+    private final IntSupplier multiplier;
     private ItemStack reference = ItemStack.EMPTY;
     private int count;
 
-    RadiantTroveInventory(Runnable onChange) {
+    RadiantTroveInventory(Runnable onChange, IntSupplier multiplier) {
         this.onChange = onChange;
+        this.multiplier = multiplier;
     }
 
     public int count() {
@@ -38,7 +42,8 @@ public final class RadiantTroveInventory implements IItemHandler {
         if (!isItemValid(slot, stack)) {
             return stack;
         }
-        int accepted = Math.min(stack.getCount(), Math.max(0, getSlotLimit(slot) - count));
+        int capacity = capacity(reference.isEmpty() ? stack : reference, multiplier.getAsInt());
+        int accepted = Math.min(stack.getCount(), Math.max(0, capacity - count));
         if (accepted > 0 && !simulate) {
             if (count == 0) {
                 reference = stack.copyWithCount(1);
@@ -71,7 +76,12 @@ public final class RadiantTroveInventory implements IItemHandler {
         if (slot < 0 || slot >= getSlots()) {
             return 0;
         }
-        return reference.isEmpty() ? BASE_CAPACITY : Math.max(reference.getMaxStackSize(), 64) * 512;
+        return capacity(reference, multiplier.getAsInt());
+    }
+
+    static int capacity(ItemStack reference, int multiplier) {
+        long base = reference.isEmpty() ? BASE_CAPACITY : Math.max(64L, reference.getMaxStackSize()) * 512;
+        return (int) Math.min(Integer.MAX_VALUE, base * multiplier);
     }
 
     @Override

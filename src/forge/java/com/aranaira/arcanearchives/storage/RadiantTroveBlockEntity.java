@@ -20,18 +20,29 @@ import java.util.UUID;
 
 public final class RadiantTroveBlockEntity extends PortableStorageBlockEntity {
     public static final String STORED_ITEMS = "handler_item";
-    private final RadiantTroveInventory inventory = new RadiantTroveInventory(this::contentsChanged);
+    private final RadiantTroveInventory inventory = new RadiantTroveInventory(this::contentsChanged,
+            () -> upgrades().multiplier());
     private LazyOptional<IItemHandler> itemHandler = LazyOptional.of(() -> inventory);
     private UUID lastDepositor;
     private long lastDeposit = -16;
     private long lastExtraction = -3;
 
     public RadiantTroveBlockEntity(BlockPos position, BlockState state) {
-        super(ArcaneArchives.RADIANT_TROVE_ENTITY.get(), position, state, STORED_ITEMS);
+        super(ArcaneArchives.RADIANT_TROVE_ENTITY.get(), position, state, STORED_ITEMS, false);
     }
 
     public RadiantTroveInventory inventory() {
         return inventory;
+    }
+
+    @Override
+    int storedAmount() {
+        return inventory.count();
+    }
+
+    @Override
+    int capacityWithMultiplier(int multiplier) {
+        return RadiantTroveInventory.capacity(inventory.reference(), multiplier);
     }
 
     void deposit(Player player) {

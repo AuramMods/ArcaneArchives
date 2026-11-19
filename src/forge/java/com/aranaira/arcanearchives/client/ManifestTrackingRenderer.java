@@ -1,6 +1,7 @@
 package com.aranaira.arcanearchives.client;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
@@ -13,7 +14,7 @@ import java.util.OptionalDouble;
 
 final class ManifestTrackingRenderer extends RenderType {
     private static final RenderType RAYS = create("arcanearchives_manifest_rays", DefaultVertexFormat.POSITION_COLOR_NORMAL,
-            VertexFormat.Mode.LINES, 1536, false, true, CompositeState.builder()
+            VertexFormat.Mode.LINES, 1536, false, false, CompositeState.builder()
                     .setShaderState(RENDERTYPE_LINES_SHADER)
                     .setLineState(new LineStateShard(OptionalDouble.of(2.5)))
                     .setDepthTestState(NO_DEPTH_TEST)
@@ -28,7 +29,7 @@ final class ManifestTrackingRenderer extends RenderType {
     }
 
     static void render(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL || ManifestClient.locations().isEmpty()) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES || ManifestClient.locations().isEmpty()) {
             return;
         }
         Minecraft client = Minecraft.getInstance();
@@ -39,7 +40,7 @@ final class ManifestTrackingRenderer extends RenderType {
         Vec3 start = client.player.getPosition(event.getPartialTick()).add(0, 1.0, 0).subtract(camera);
         if (!event.getCamera().isDetached()) {
             var look = client.player.getViewVector(event.getPartialTick());
-            start = start.add(look.x * 0.4, 0, look.z * 0.4);
+            start = start.add(look.scale(0.55));
         }
         var buffers = client.renderBuffers().bufferSource();
         VertexConsumer vertices = buffers.getBuffer(RAYS);
@@ -58,8 +59,7 @@ final class ManifestTrackingRenderer extends RenderType {
         buffers.endBatch(RAYS);
     }
 
-    private static void vertex(VertexConsumer vertices, com.mojang.blaze3d.vertex.PoseStack.Pose pose, Vec3 pos,
-                               Vec3 normal, int color) {
+    private static void vertex(VertexConsumer vertices, PoseStack.Pose pose, Vec3 pos, Vec3 normal, int color) {
         vertices.vertex(pose.pose(), (float) pos.x, (float) pos.y, (float) pos.z)
                 .color(color >> 16 & 255, color >> 8 & 255, color & 255, 206)
                 .normal(pose.normal(), (float) normal.x, (float) normal.y, (float) normal.z).endVertex();

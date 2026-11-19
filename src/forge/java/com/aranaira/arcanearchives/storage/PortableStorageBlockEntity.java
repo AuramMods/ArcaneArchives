@@ -10,22 +10,37 @@ import net.minecraft.world.level.block.state.BlockState;
 
 abstract class PortableStorageBlockEntity extends ArchiveDeviceBlockEntity {
     private final String storageKey;
+    private final StorageUpgrades upgrades;
 
-    PortableStorageBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, String storageKey) {
+    PortableStorageBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, String storageKey, boolean tank) {
         super(type, pos, state);
         this.storageKey = storageKey;
+        this.upgrades = new StorageUpgrades(tank, this::upgradesChanged);
     }
 
     abstract CompoundTag saveContents();
 
     abstract void loadContents(CompoundTag tag);
 
-    final String storageKey() {
-        return storageKey;
+    abstract int storedAmount();
+
+    abstract int capacityWithMultiplier(int multiplier);
+
+    void applyCapacity() {}
+
+    final StorageUpgrades upgrades() {
+        return upgrades;
     }
 
     final void restorePortableContents(CompoundTag tag) {
-        loadContents(tag);
+        if (tag.contains(storageKey) || tag.contains(StorageUpgrades.SIZE_TAG)) {
+            readStorage(tag);
+            contentsChanged();
+        }
+    }
+
+    private void upgradesChanged() {
+        applyCapacity();
         contentsChanged();
     }
 
@@ -40,25 +55,36 @@ abstract class PortableStorageBlockEntity extends ArchiveDeviceBlockEntity {
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
-        loadContents(tag.getCompound(storageKey));
+        readStorage(tag);
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
-        tag.put(storageKey, saveContents());
+        writeStorage(tag);
     }
 
     @Override
     public CompoundTag getUpdateTag() {
         CompoundTag tag = new CompoundTag();
-        tag.put(storageKey, saveContents());
+        writeStorage(tag);
         return tag;
     }
 
     @Override
     public void handleUpdateTag(CompoundTag tag) {
+        readStorage(tag);
+    }
+
+    private void readStorage(CompoundTag tag) {
+        upgrades.loadFrom(tag);
+        applyCapacity();
         loadContents(tag.getCompound(storageKey));
+    }
+
+    private void writeStorage(CompoundTag tag) {
+        tag.put(storageKey, saveContents());
+        upgrades.saveTo(tag);
     }
 
     @Override

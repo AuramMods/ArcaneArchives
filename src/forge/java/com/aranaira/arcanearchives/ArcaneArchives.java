@@ -35,6 +35,8 @@ import com.aranaira.arcanearchives.storage.RadiantTankBlockEntity;
 import com.aranaira.arcanearchives.storage.RadiantTankItem;
 import com.aranaira.arcanearchives.storage.RadiantTroveBlock;
 import com.aranaira.arcanearchives.storage.RadiantTroveBlockEntity;
+import com.aranaira.arcanearchives.storage.RadiantTroveItem;
+import com.aranaira.arcanearchives.storage.StorageUpgradesMenu;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
@@ -93,7 +95,7 @@ public final class ArcaneArchives {
             () -> new RadiantTroveBlock(BlockBehaviour.Properties.of()
                     .strength(3.0F, 6000.0F).sound(SoundType.METAL).lightLevel(state -> 15).noOcclusion()));
     public static final RegistryObject<Item> RADIANT_TROVE_ITEM = ITEMS.register("radiant_trove",
-            () -> new BlockItem(RADIANT_TROVE.get(), new Item.Properties()));
+            () -> new RadiantTroveItem(RADIANT_TROVE.get(), new Item.Properties()));
     public static final RegistryObject<BlockEntityType<RadiantTroveBlockEntity>> RADIANT_TROVE_ENTITY =
             BLOCK_ENTITIES.register("radianttrove",
                     () -> BlockEntityType.Builder.of(RadiantTroveBlockEntity::new, RADIANT_TROVE.get()).build(null));
@@ -106,6 +108,8 @@ public final class ArcaneArchives {
     public static final RegistryObject<BlockEntityType<RadiantTankBlockEntity>> RADIANT_TANK_ENTITY =
             BLOCK_ENTITIES.register("radianttank",
                     () -> BlockEntityType.Builder.of(RadiantTankBlockEntity::new, RADIANT_TANK.get()).build(null));
+    public static final RegistryObject<MenuType<StorageUpgradesMenu>> STORAGE_UPGRADES_MENU =
+            MENUS.register("storage_upgrades", () -> IForgeMenuType.create(StorageUpgradesMenu::new));
 
     public static final RegistryObject<BrazierBlock> BRAZIER = BLOCKS.register("brazier_of_hoarding",
             () -> new BrazierBlock(BlockBehaviour.Properties.of()
