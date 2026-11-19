@@ -16,7 +16,7 @@ The gameplay baseline is the shipped [0.2.0.25-mixins8 source](https://github.co
 | Arsenal | Gem Socket and its inventory, all 15 effects, charges, recharging powders, cooldowns, unlocks, visuals and configurable availability | Pending |
 | Guide and integrations | Tome of Arcana, guides, translations, advancements, config controls, JEI, scriptable Gem Cutter recipes, block inspection, crafting controls, equipment slot and supported cross-mod interactions | Pending |
 
-The Arsenal baseline includes Slaughtergleam, Murdergleam, Agegleam, Cleansegleam, Switchgleam, Salvegleam, Munchstone, Orderstone, Mindspindle, Elixirspindle, Mountaintear, Rivertear, Parchtear, Phoenixway and Stormway. Both Chromatic Powders are part of that baseline. The old registry includes a conditional guidebook marker for the Arsenal. Check behavior with the feature enabled and disabled.
+The Arsenal baseline includes Slaughtergleam, Murdergleam, Agegleam, Cleansegleam, Switchgleam, Salvegleam, Munchstone, Orderstone, Mindspindle, Elixirspindle, Mountaintear, Rivertear, Parchtear, Phoenixway and Stormway. Both Chromatic Powders are part of that baseline. The release registers these items and the Gem Socket with the Arsenal disabled by default. The setting controls recipes, the Arsenal keybinds and the guidebook marker. Parchtear also uses the runtime-only `fake_air` block to hold back water temporarily. Check behavior with the feature enabled and disabled.
 
 ## Local verification
 
@@ -34,6 +34,8 @@ The Radiant Crafting Table checkpoint passed 27 headless GameTests. They cover a
 
 The packaged build at 9e399789 was tested on a dedicated server with a muted Xvfb client. A survival player placed the Radiant Crafting Table, crafted sticks through the grid and a saved shortcut, and saved and cleared the last recipe. The restarted server retained the saved shortcut and the six quartz left in the grid.
 
-The monitoring checkpoint passed 29 headless GameTests. A placed Monitoring Crystal found a wooden chest, stopped reporting when the chest was replaced by a Radiant Chest, and read a barrel after being reoriented. Inspection tests check a named Radiant Chest's free slots and a loaded Radiant Tank's fluid and capacity.
+The monitoring checkpoint passed 29 headless GameTests. A placed Monitoring Crystal found a wooden chest, stopped reporting when the chest was replaced by a Radiant Chest, and read a barrel after being reoriented. Inspection tests check a named Radiant Chest's free slots and a loaded Radiant Tank's fluid and capacity. In the packaged build at 4741a8aa, a muted client attached a Crystal to a chest and the Scepter reported its direction and a Tank's 16,000 mB capacity. The same run opened the Radiant Crafting Table using the plain inventory theme.
 
-The hive-letter checkpoint passed 31 headless GameTests. They cover signed crafting, joining, resigning, anvil naming against the offline member's stored name, and refusal to use another player's writ or resignation. The recipe packet now includes hive requirements and signature behavior. Use matching client and server jars for this checkpoint.
+The hive-letter checkpoint passed 31 headless GameTests and built from an exported clean source snapshot at 8bc4d09f. The tests cover signed crafting, joining, resigning, anvil naming against the offline member's stored name, and refusal to use another player's writ or resignation. The recipe packet now includes hive requirements and signature behavior. Use matching client and server jars for this checkpoint.
+
+Two muted Forge clients verified that a signed invitation joined the recipient to the owner's hive. After restarting the same server, the member could no longer craft invitations and the failed attempt left the ingredients intact. The member crafted and used a signed resignation, and the owner received the disband notice. Both clients ran on isolated Xvfb displays with zero master volume and OpenAL's No Output driver.
