@@ -1,3 +1,6 @@
 {
-  "values": ["arcanearchives:radiant_chest"]
+  "values": [
+    "arcanearchives:radiant_chest",
+    "arcanearchives:radiant_trove"
+  ]
 }
