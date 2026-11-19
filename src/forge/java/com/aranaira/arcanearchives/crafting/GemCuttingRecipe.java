@@ -1,6 +1,7 @@
 package com.aranaira.arcanearchives.crafting;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.network.ArchiveNetworks;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -10,6 +11,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
@@ -31,12 +33,21 @@ public final class GemCuttingRecipe implements Recipe<Container> {
     private final int order;
     private final List<Requirement> requirements;
     private final ItemStack result;
+    private final HiveRequirement hiveRequirement;
+    private final boolean signResult;
 
     public GemCuttingRecipe(ResourceLocation id, int order, List<Requirement> requirements, ItemStack result) {
+        this(id, order, requirements, result, HiveRequirement.ANY, false);
+    }
+
+    private GemCuttingRecipe(ResourceLocation id, int order, List<Requirement> requirements, ItemStack result,
+                             HiveRequirement hiveRequirement, boolean signResult) {
         this.id = id;
         this.order = order;
         this.requirements = List.copyOf(requirements);
         this.result = result.copy();
+        this.hiveRequirement = hiveRequirement;
+        this.signResult = signResult;
     }
 
     public int order() {
@@ -45,6 +56,20 @@ public final class GemCuttingRecipe implements Recipe<Container> {
 
     public List<Requirement> requirements() {
         return requirements;
+    }
+
+    boolean allowedInHive(int requirementsMet) {
+        return (requirementsMet & hiveRequirement.bit()) != 0;
+    }
+
+    ItemStack resultFor(Player player) {
+        ItemStack stack = getResultItem(player.level().registryAccess());
+        if (signResult) {
+            var tag = stack.getOrCreateTag();
+            tag.putUUID("creator", player.getUUID());
+            tag.putString("creator_name", player.getGameProfile().getName());
+        }
+        return stack;
     }
 
     @Override
@@ -107,6 +132,51 @@ public final class GemCuttingRecipe implements Recipe<Container> {
 
     public record Requirement(Ingredient ingredient, int count) {}
 
+    private enum HiveRequirement {
+        ANY("any"), CAN_INVITE("can_invite"), MEMBER("member"), OWNER("owner");
+
+        private final String id;
+
+        HiveRequirement(String id) {
+            this.id = id;
+        }
+
+        int bit() {
+            return 1 << ordinal();
+        }
+
+        static HiveRequirement parse(String id) {
+            for (HiveRequirement value : values()) {
+                if (value.id.equals(id)) {
+                    return value;
+                }
+            }
+            throw new JsonSyntaxException("Unknown Gem Cutter hive requirement " + id);
+        }
+    }
+
+    static int requirementsMet(Player player) {
+        var server = player.getServer();
+        if (server == null) {
+            return HiveRequirement.ANY.bit();
+        }
+        var networks = ArchiveNetworks.get(server);
+        var actor = player.getUUID();
+        boolean leads = networks.hiveOwner(actor).equals(actor);
+        boolean belongs = networks.hasHive(actor);
+        int met = HiveRequirement.ANY.bit();
+        if (leads) {
+            met |= HiveRequirement.CAN_INVITE.bit();
+        }
+        if (belongs) {
+            met |= HiveRequirement.MEMBER.bit();
+            if (leads) {
+                met |= HiveRequirement.OWNER.bit();
+            }
+        }
+        return met;
+    }
+
     public static final class Serializer implements RecipeSerializer<GemCuttingRecipe> {
         @Override
         public GemCuttingRecipe fromJson(ResourceLocation id, JsonObject json) {
@@ -123,7 +193,9 @@ public final class GemCuttingRecipe implements Recipe<Container> {
             if (result.isEmpty() || result.getCount() > result.getMaxStackSize()) {
                 throw new JsonSyntaxException("Invalid Gem Cutter result stack");
             }
-            return new GemCuttingRecipe(id, GsonHelper.getAsInt(json, "order", 0), requirements, result);
+            return new GemCuttingRecipe(id, GsonHelper.getAsInt(json, "order", 0), requirements, result,
+                    HiveRequirement.parse(GsonHelper.getAsString(json, "hive_requirement", "any")),
+                    GsonHelper.getAsBoolean(json, "sign_result", false));
         }
 
         @Override
@@ -138,7 +210,8 @@ public final class GemCuttingRecipe implements Recipe<Container> {
                 validateCount(count);
                 requirements.add(new Requirement(ingredient, count));
             }
-            return new GemCuttingRecipe(id, order, requirements, buffer.readItem());
+            return new GemCuttingRecipe(id, order, requirements, buffer.readItem(),
+                    buffer.readEnum(HiveRequirement.class), buffer.readBoolean());
         }
 
         @Override
@@ -150,6 +223,8 @@ public final class GemCuttingRecipe implements Recipe<Container> {
                 buffer.writeVarInt(requirement.count());
             }
             buffer.writeItem(recipe.result);
+            buffer.writeEnum(recipe.hiveRequirement);
+            buffer.writeBoolean(recipe.signResult);
         }
 
         private static void validateSize(int size) {

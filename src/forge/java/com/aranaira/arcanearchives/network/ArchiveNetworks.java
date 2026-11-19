@@ -24,6 +24,7 @@ import java.util.UUID;
 public final class ArchiveNetworks extends SavedData {
     private final Map<GlobalPos, Device> devices = new LinkedHashMap<>();
     private final Map<UUID, LinkedHashSet<UUID>> hives = new LinkedHashMap<>();
+    private final Map<UUID, String> memberNames = new LinkedHashMap<>();
 
     public static ArchiveNetworks get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(ArchiveNetworks::load, ArchiveNetworks::new,
@@ -69,6 +70,21 @@ public final class ArchiveNetworks extends SavedData {
 
     public boolean sharesHive(UUID first, UUID second) {
         return hiveOwner(first).equals(hiveOwner(second));
+    }
+
+    public boolean hasHive(UUID player) {
+        return hives.containsKey(hiveOwner(player));
+    }
+
+    void rememberMemberName(UUID id, String name) {
+        if (!name.isBlank() && !name.equals(memberNames.put(id, name))) {
+            setDirty();
+        }
+    }
+
+    @Nullable
+    String knownMemberName(UUID id) {
+        return memberNames.get(id);
     }
 
     public UUID hiveOwner(UUID player) {
@@ -161,6 +177,14 @@ public final class ArchiveNetworks extends SavedData {
             hiveList.add(hiveTag);
         }
         tag.put("Hives", hiveList);
+        ListTag names = new ListTag();
+        memberNames.forEach((id, name) -> {
+            CompoundTag entry = new CompoundTag();
+            entry.putUUID("Id", id);
+            entry.putString("Name", name);
+            names.add(entry);
+        });
+        tag.put("MemberNames", names);
         return tag;
     }
 
@@ -195,6 +219,13 @@ public final class ArchiveNetworks extends SavedData {
             }
             if (!members.isEmpty()) {
                 networks.hives.put(owner, members);
+            }
+        }
+        ListTag names = tag.getList("MemberNames", Tag.TAG_COMPOUND);
+        for (int i = 0; i < names.size(); i++) {
+            CompoundTag entry = names.getCompound(i);
+            if (entry.hasUUID("Id") && !entry.getString("Name").isBlank()) {
+                networks.memberNames.put(entry.getUUID("Id"), entry.getString("Name"));
             }
         }
         return networks;

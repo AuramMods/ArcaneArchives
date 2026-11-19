@@ -31,6 +31,7 @@ public final class GemCuttersTableMenu extends AbstractContainerMenu {
     private final ItemStackHandler drawer;
     private final SimpleContainer output = new SimpleContainer(1);
     private final DataSlot selection = DataSlot.standalone();
+    private final DataSlot hiveRequirementsMet = DataSlot.standalone();
     @Nullable
     private final GemCuttersTableBlockEntity table;
     private List<GemCuttingRecipe> loadedRecipes = List.of();
@@ -52,6 +53,7 @@ public final class GemCuttersTableMenu extends AbstractContainerMenu {
         this.table = table;
         this.drawer = drawer;
         addDataSlot(selection);
+        addDataSlot(hiveRequirementsMet);
         addSlot(new Slot(output, 0, 95, 18) {
             @Override
             public boolean mayPlace(ItemStack stack) {
@@ -98,7 +100,7 @@ public final class GemCuttersTableMenu extends AbstractContainerMenu {
     }
 
     public boolean canCraft(GemCuttingRecipe recipe) {
-        return allocation(recipe) != null;
+        return recipe.allowedInHive(hiveRequirementsMet.get()) && allocation(recipe) != null;
     }
 
     @Override
@@ -165,12 +167,13 @@ public final class GemCuttersTableMenu extends AbstractContainerMenu {
     }
 
     private void updateOutput() {
+        hiveRequirementsMet.set(GemCuttingRecipe.requirementsMet(inventory.player));
         List<GemCuttingRecipe> available = recipes();
         for (int index = 0; index < available.size(); index++) {
             GemCuttingRecipe recipe = available.get(index);
             if (recipe.getId().equals(table.selectedRecipe())) {
                 selection.set(index);
-                updateOutputStack(canCraft(recipe) ? recipe.getResultItem(inventory.player.level().registryAccess()) : ItemStack.EMPTY);
+                updateOutputStack(canCraft(recipe) ? recipe.resultFor(inventory.player) : ItemStack.EMPTY);
                 return;
             }
         }
@@ -207,11 +210,14 @@ public final class GemCuttersTableMenu extends AbstractContainerMenu {
         if (!(player.level().getRecipeManager().byKey(table.selectedRecipe()).orElse(null) instanceof GemCuttingRecipe recipe)) {
             return ItemStack.EMPTY;
         }
+        if (!recipe.allowedInHive(GemCuttingRecipe.requirementsMet(player))) {
+            return ItemStack.EMPTY;
+        }
         int[] counts = allocation(recipe);
         if (counts == null) {
             return ItemStack.EMPTY;
         }
-        ItemStack result = recipe.getResultItem(player.level().registryAccess());
+        ItemStack result = recipe.resultFor(player);
         ItemStack[] playerAfter = new ItemStack[Inventory.INVENTORY_SIZE];
         for (int slot = 0; slot < playerAfter.length; slot++) {
             ItemStack stack = inventory.getItem(slot);

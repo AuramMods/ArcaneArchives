@@ -11,6 +11,7 @@ import com.aranaira.arcanearchives.crafting.RadiantCraftingTableMenu;
 import com.aranaira.arcanearchives.monitoring.MonitoringCrystalBlock;
 import com.aranaira.arcanearchives.monitoring.MonitoringCrystalBlockEntity;
 import com.aranaira.arcanearchives.monitoring.RevelationScepterItem;
+import com.aranaira.arcanearchives.network.HiveLetterItem;
 import com.aranaira.arcanearchives.progression.DirectionalQuartzBlock;
 import com.aranaira.arcanearchives.progression.QuartzSliverBlock;
 import com.aranaira.arcanearchives.progression.RadiantResonatorBlock;
@@ -191,6 +192,12 @@ public final class ArcaneArchives {
                     .of(MonitoringCrystalBlockEntity::new, MONITORING_CRYSTAL.get()).build(null));
     public static final RegistryObject<Item> SCEPTER_REVELATION = ITEMS.register("scepter_revelation",
             () -> new RevelationScepterItem(new Item.Properties().stacksTo(1)));
+    public static final RegistryObject<Item> LETTER_INVITATION = ITEMS.register("letter_invitation",
+            () -> new HiveLetterItem(new Item.Properties(), HiveLetterItem.Kind.INVITATION));
+    public static final RegistryObject<Item> LETTER_RESIGNATION = ITEMS.register("letter_resignation",
+            () -> new HiveLetterItem(new Item.Properties(), HiveLetterItem.Kind.RESIGNATION));
+    public static final RegistryObject<Item> WRIT_EXPULSION = ITEMS.register("writ_expulsion",
+            () -> new HiveLetterItem(new Item.Properties(), HiveLetterItem.Kind.EXPULSION));
 
     static {
         TABS.register(ID, () -> CreativeModeTab.builder()
@@ -219,6 +226,9 @@ public final class ArcaneArchives {
                     output.accept(RADIANT_AMPHORA.get());
                     output.accept(MONITORING_CRYSTAL_ITEM.get());
                     output.accept(SCEPTER_REVELATION.get());
+                    output.accept(LETTER_INVITATION.get());
+                    output.accept(LETTER_RESIGNATION.get());
+                    output.accept(WRIT_EXPULSION.get());
                 })
                 .build());
     }
@@ -236,6 +246,8 @@ public final class ArcaneArchives {
         modBus.addListener(ArcaneArchives::commonSetup);
         MinecraftForge.EVENT_BUS.addListener(RadiantAmphoraItem::onLeftClickBlock);
         MinecraftForge.EVENT_BUS.addListener(RawQuartzItem::bashOnBlock);
+        MinecraftForge.EVENT_BUS.addListener(HiveLetterItem::onAnvilRepair);
+        MinecraftForge.EVENT_BUS.addListener(HiveLetterItem::onPlayerLogin);
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ArchiveConfig.SERVER_SPEC);
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ArchiveConfig.CLIENT_SPEC);
         ArchiveNetwork.register();

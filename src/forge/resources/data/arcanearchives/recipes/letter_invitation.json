@@ -1,0 +1,30 @@
+{
+  "type": "arcanearchives:gem_cutting",
+  "order": 30,
+  "hive_requirement": "can_invite",
+  "sign_result": true,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "minecraft:paper"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "item": "arcanearchives:radiant_dust"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "forge:dyes/light_blue"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "item": "arcanearchives:letter_invitation",
+    "count": 1
+  }
+}
