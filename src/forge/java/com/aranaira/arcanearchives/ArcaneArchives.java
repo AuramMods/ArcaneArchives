@@ -129,6 +129,11 @@ public final class ArcaneArchives {
                     .noCollission().noOcclusion().lightLevel(state -> 15)));
     public static final RegistryObject<Item> QUARTZ_SLIVER_ITEM = ITEMS.register("quartz_sliver",
             () -> new BlockItem(QUARTZ_SLIVER.get(), new Item.Properties()));
+    public static final RegistryObject<DirectionalQuartzBlock> RADIANT_LANTERN = BLOCKS.register("radiant_lantern",
+            () -> new DirectionalQuartzBlock(BlockBehaviour.Properties.of().strength(0.3F)
+                    .sound(SoundType.GLASS).noCollission().noOcclusion().lightLevel(state -> 15), 5.6));
+    public static final RegistryObject<Item> RADIANT_LANTERN_ITEM = ITEMS.register("radiant_lantern",
+            () -> new BlockItem(RADIANT_LANTERN.get(), new Item.Properties()));
 
     public static final RegistryObject<Block> STORAGE_RAW_QUARTZ = quartzStorageBlock("storage_raw_quartz");
     public static final RegistryObject<Block> STORAGE_SHAPED_QUARTZ = quartzStorageBlock("storage_shaped_quartz");
@@ -167,6 +172,7 @@ public final class ArcaneArchives {
                     output.accept(RAW_QUARTZ_CLUSTER_ITEM.get());
                     output.accept(RAW_QUARTZ.get());
                     output.accept(QUARTZ_SLIVER_ITEM.get());
+                    output.accept(RADIANT_LANTERN_ITEM.get());
                     output.accept(GEMCUTTERS_TABLE_ITEM.get());
                     output.accept(STORAGE_RAW_QUARTZ_ITEM.get());
                     output.accept(STORAGE_SHAPED_QUARTZ_ITEM.get());

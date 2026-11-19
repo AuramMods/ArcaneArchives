@@ -16,9 +16,20 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class DirectionalQuartzBlock extends Block {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
+    private final VoxelShape xShape;
+    private final VoxelShape yShape;
+    private final VoxelShape zShape;
 
     public DirectionalQuartzBlock(Properties properties) {
+        this(properties, 3.2);
+    }
+
+    public DirectionalQuartzBlock(Properties properties, double inset) {
         super(properties);
+        double edge = 16 - inset;
+        xShape = box(0, inset, inset, 16, edge, edge);
+        yShape = box(inset, 0, inset, edge, 16, edge);
+        zShape = box(inset, inset, 0, edge, edge, 16);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.UP));
     }
 
@@ -45,9 +56,9 @@ public class DirectionalQuartzBlock extends Block {
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return switch (state.getValue(FACING).getAxis()) {
-            case X -> box(0, 3.2, 3.2, 16, 12.8, 12.8);
-            case Y -> box(3.2, 0, 3.2, 12.8, 16, 12.8);
-            case Z -> box(3.2, 3.2, 0, 12.8, 12.8, 16);
+            case X -> xShape;
+            case Y -> yShape;
+            case Z -> zShape;
         };
     }
 }

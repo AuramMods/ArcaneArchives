@@ -1,6 +1,7 @@
 package com.aranaira.arcanearchives.crafting;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.progression.DirectionalQuartzBlock;
 import com.aranaira.arcanearchives.storage.BrazierBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -15,6 +16,7 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Blocks;
@@ -116,6 +118,33 @@ public final class GemCuttersTableGameTests {
         menu.clicked(0, 0, ClickType.QUICK_MOVE, player);
         test.assertTrue(inventory.getItem(35).is(ArcaneArchives.RADIANT_DUST.get()) && inventory.getItem(35).getCount() == 2,
                 "Shift crafting should use the inventory slot freed when it consumes the last quartz");
+        test.succeed();
+    }
+
+    @GameTest(template = "chest_fixture")
+    public static void craftAndOrientRadiantLanterns(GameTestHelper test) {
+        Player player = playerAtTable(test);
+        test.setBlock(POSITION, ArcaneArchives.GEMCUTTERS_TABLE.get());
+        GemCuttersTableBlockEntity table = (GemCuttersTableBlockEntity) test.getBlockEntity(POSITION);
+        GemCuttersTableMenu menu = (GemCuttersTableMenu) table.createMenu(1, player.getInventory(), player);
+        table.drawer().setStackInSlot(0, new ItemStack(ArcaneArchives.RAW_QUARTZ.get(), 2));
+        player.getInventory().setItem(0, new ItemStack(Items.GOLD_NUGGET));
+        test.assertTrue(menu.selectRecipe(player, ArcaneArchives.id("radiant_lantern")), "The Lantern recipe should be available");
+        menu.clicked(0, 0, ClickType.PICKUP, player);
+        ItemStack lanterns = menu.getCarried();
+        test.assertTrue(lanterns.is(ArcaneArchives.RADIANT_LANTERN_ITEM.get()) && lanterns.getCount() == 4
+                        && player.getInventory().getItem(0).isEmpty() && table.drawer().getStackInSlot(0).isEmpty(),
+                "The released recipe should craft four Lanterns from one nugget and two raw quartz");
+
+        BlockPos support = table.getBlockPos();
+        for (Direction face : Direction.values()) {
+            var hit = new BlockHitResult(Vec3.atCenterOf(support), face, support, false);
+            var context = new BlockPlaceContext(player, InteractionHand.MAIN_HAND, lanterns, hit);
+            var state = ArcaneArchives.RADIANT_LANTERN.get().getStateForPlacement(context);
+            test.assertTrue(state.getValue(DirectionalQuartzBlock.FACING) == face && state.getLightEmission() == 15
+                            && state.getCollisionShape(test.getLevel(), context.getClickedPos()).isEmpty(),
+                    "Lanterns should follow each clicked face, emit full light and have no collision");
+        }
         test.succeed();
     }
 
