@@ -120,6 +120,19 @@ public final class ArcaneArchives {
     public static final RegistryObject<Item> QUARTZ_SLIVER_ITEM = ITEMS.register("quartz_sliver",
             () -> new BlockItem(QUARTZ_SLIVER.get(), new Item.Properties()));
 
+    public static final RegistryObject<Block> STORAGE_RAW_QUARTZ = quartzStorageBlock("storage_raw_quartz");
+    public static final RegistryObject<Block> STORAGE_SHAPED_QUARTZ = quartzStorageBlock("storage_shaped_quartz");
+    public static final RegistryObject<Item> STORAGE_RAW_QUARTZ_ITEM = ITEMS.register("storage_raw_quartz",
+            () -> new BlockItem(STORAGE_RAW_QUARTZ.get(), new Item.Properties()));
+    public static final RegistryObject<Item> STORAGE_SHAPED_QUARTZ_ITEM = ITEMS.register("storage_shaped_quartz",
+            () -> new BlockItem(STORAGE_SHAPED_QUARTZ.get(), new Item.Properties()));
+    public static final RegistryObject<Item> SHAPED_QUARTZ = material("shaped_quartz");
+    public static final RegistryObject<Item> RADIANT_DUST = material("radiant_dust");
+    public static final RegistryObject<Item> SCINTILLATING_INLAY = material("scintillating_inlay");
+    public static final RegistryObject<Item> MATRIX_BRACE = material("matrix_brace");
+    public static final RegistryObject<Item> MATERIAL_INTERFACE = material("material_interface");
+    public static final RegistryObject<Item> CONTAINMENT_FIELD = material("containment_field");
+
     static {
         TABS.register(ID, () -> CreativeModeTab.builder()
                 .title(Component.translatable("itemGroup.arcanearchives"))
@@ -129,6 +142,14 @@ public final class ArcaneArchives {
                     output.accept(RAW_QUARTZ_CLUSTER_ITEM.get());
                     output.accept(RAW_QUARTZ.get());
                     output.accept(QUARTZ_SLIVER_ITEM.get());
+                    output.accept(STORAGE_RAW_QUARTZ_ITEM.get());
+                    output.accept(STORAGE_SHAPED_QUARTZ_ITEM.get());
+                    output.accept(SHAPED_QUARTZ.get());
+                    output.accept(RADIANT_DUST.get());
+                    output.accept(SCINTILLATING_INLAY.get());
+                    output.accept(MATRIX_BRACE.get());
+                    output.accept(MATERIAL_INTERFACE.get());
+                    output.accept(CONTAINMENT_FIELD.get());
                     output.accept(RADIANT_CHEST_ITEM.get());
                     output.accept(RADIANT_TROVE_ITEM.get());
                     output.accept(RADIANT_TANK_ITEM.get());
@@ -155,6 +176,15 @@ public final class ArcaneArchives {
 
     private static void commonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(RadiantAmphoraItem::registerDispenser);
+    }
+
+    private static RegistryObject<Block> quartzStorageBlock(String id) {
+        return BLOCKS.register(id, () -> new Block(BlockBehaviour.Properties.of().strength(1.7F)
+                .sound(SoundType.STONE).lightLevel(state -> 15).requiresCorrectToolForDrops()));
+    }
+
+    private static RegistryObject<Item> material(String id) {
+        return ITEMS.register(id, () -> new Item(new Item.Properties()));
     }
 
     public static ResourceLocation id(String path) {

@@ -5,6 +5,8 @@
     "arcanearchives:radiant_tank",
     "arcanearchives:brazier_of_hoarding",
     "arcanearchives:radiant_resonator",
-    "arcanearchives:raw_quartz_cluster"
+    "arcanearchives:raw_quartz_cluster",
+    "arcanearchives:storage_raw_quartz",
+    "arcanearchives:storage_shaped_quartz"
   ]
 }

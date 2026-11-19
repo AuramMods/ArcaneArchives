@@ -16,5 +16,13 @@
   "block.arcanearchives.raw_quartz_cluster": "Raw Quartz Cluster",
   "item.arcanearchives.raw_quartz": "Raw Radiant Quartz",
   "message.arcanearchives.resonator.limit": "Your personal network can have up to %s Radiant Resonators.",
-  "block.arcanearchives.quartz_sliver": "Sliver of Light"
+  "block.arcanearchives.quartz_sliver": "Sliver of Light",
+  "block.arcanearchives.storage_raw_quartz": "Raw Radiant Quartz Block",
+  "block.arcanearchives.storage_shaped_quartz": "Shaped Radiant Quartz Block",
+  "item.arcanearchives.shaped_quartz": "Shaped Radiant Quartz",
+  "item.arcanearchives.radiant_dust": "Radiant Dust",
+  "item.arcanearchives.scintillating_inlay": "Scintillating Inlay",
+  "item.arcanearchives.matrix_brace": "Matrix Brace",
+  "item.arcanearchives.material_interface": "Material Interface",
+  "item.arcanearchives.containment_field": "Containment Field"
 }

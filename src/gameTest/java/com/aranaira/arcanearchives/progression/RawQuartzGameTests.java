@@ -81,4 +81,21 @@ public final class RawQuartzGameTests {
         test.assertTrue(singles > 0 && clusters > 0, "The released defaults should provide both quartz-bashing outcomes");
         test.succeed();
     }
+
+    @GameTest(template = "chest_fixture")
+    public static void packingAndUnpackingQuartz(GameTestHelper test) {
+        var recipes = test.getLevel().getRecipeManager();
+        var registry = test.getLevel().registryAccess();
+        var rawBlock = recipes.byKey(ArcaneArchives.id("storage_raw_quartz")).orElseThrow(AssertionError::new);
+        var shapedBlock = recipes.byKey(ArcaneArchives.id("storage_shaped_quartz")).orElseThrow(AssertionError::new);
+        var rawQuartz = recipes.byKey(ArcaneArchives.id("destorage_rawquartz")).orElseThrow(AssertionError::new);
+        var shapedQuartz = recipes.byKey(ArcaneArchives.id("destorage_shapedquartz")).orElseThrow(AssertionError::new);
+        test.assertTrue(rawBlock.getIngredients().size() == 9 && rawBlock.getResultItem(registry).is(ArcaneArchives.STORAGE_RAW_QUARTZ_ITEM.get())
+                        && shapedBlock.getIngredients().size() == 9 && shapedBlock.getResultItem(registry).is(ArcaneArchives.STORAGE_SHAPED_QUARTZ_ITEM.get()),
+                "Both quartz forms should compress nine items into a block");
+        test.assertTrue(rawQuartz.getResultItem(registry).is(ArcaneArchives.RAW_QUARTZ.get()) && rawQuartz.getResultItem(registry).getCount() == 9
+                        && shapedQuartz.getResultItem(registry).is(ArcaneArchives.SHAPED_QUARTZ.get()) && shapedQuartz.getResultItem(registry).getCount() == 9,
+                "Unpacking either quartz block should return nine matching items");
+        test.succeed();
+    }
 }
