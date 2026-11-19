@@ -1,6 +1,7 @@
 package com.aranaira.arcanearchives.storage;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.network.ArchiveDeviceBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -11,7 +12,6 @@ import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -20,7 +20,7 @@ import net.minecraftforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
 
-public final class RadiantChestBlockEntity extends BlockEntity implements MenuProvider, Nameable {
+public final class RadiantChestBlockEntity extends ArchiveDeviceBlockEntity implements MenuProvider, Nameable {
     private final RadiantChestInventory inventory = new RadiantChestInventory(this::setChanged);
     private LazyOptional<IItemHandler> itemHandler = LazyOptional.of(() -> inventory);
     private Component customName;

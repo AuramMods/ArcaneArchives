@@ -8,7 +8,7 @@ The gameplay baseline is the shipped [0.2.0.25-mixins8 source](https://github.co
 | --- | --- | --- |
 | Radiant Chest | 54 slots, configurable oversized stacks, automation, comparator, inventory transfers, conversion, naming, displayed item, routing mode and both construction recipes | Core chest and original art in place. Conversion, display tools, routing and survival acquisition remain. |
 | Trove, Tank and Amphora | Single-item high-capacity Trove, fluid Tank, upgrades, portable contents, capabilities and remote fill and drain | Pending |
-| Networks and Manifest | Personal networks and shared hives, invitation, resignation and expulsion items, permissions, item and fluid search, location tracking, filters, Manifest Lectern and listener updates | Pending |
+| Networks and Manifest | Personal networks and shared hives, invitation, resignation and expulsion items, permissions, item and fluid search, location tracking, filters, Manifest Lectern and listener updates | Device ownership and hive membership persist. Player-facing letters, Manifest and routing remain. |
 | Brazier of Hoarding | Multiblock, dropped item and fluid routing, configurable range, sorting and priority rules, visual feedback and access controls | Pending |
 | Quartz progression | Radiant Resonator, Raw Quartz Cluster, Sliver of Light, raw and shaped quartz, raw and shaped storage blocks, Radiant Lantern, crafting components, sounds and Tome acquisition | Pending |
 | Crafting | Gem Cutter’s Table multiblock and ingredient matching, custom recipes and JEI categories, recipe reuse, Radiant Crafting Table with persistent matrix and network access | Pending |

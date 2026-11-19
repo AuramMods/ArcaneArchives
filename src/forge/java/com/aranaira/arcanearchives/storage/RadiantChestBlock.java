@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.network.NetworkHooks;
 
 import javax.annotation.Nullable;
@@ -46,8 +47,13 @@ public final class RadiantChestBlock extends BaseEntityBlock {
 
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        if (stack.hasCustomHoverName() && level.getBlockEntity(pos) instanceof RadiantChestBlockEntity chest) {
-            chest.setCustomName(stack.getHoverName());
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof RadiantChestBlockEntity chest) {
+            if (placer instanceof Player && !(placer instanceof FakePlayer)) {
+                chest.bindTo(placer.getUUID());
+            }
+            if (stack.hasCustomHoverName()) {
+                chest.setCustomName(stack.getHoverName());
+            }
         }
     }
 
@@ -62,6 +68,7 @@ public final class RadiantChestBlock extends BaseEntityBlock {
                     Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), stack.copy());
                 }
             }
+            chest.removeFromNetwork();
             level.updateNeighbourForOutputSignal(pos, this);
         }
         super.onRemove(state, level, pos, replacement, movedByPiston);

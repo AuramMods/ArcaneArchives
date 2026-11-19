@@ -1,6 +1,7 @@
 package com.aranaira.arcanearchives.storage;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.network.ArchiveNetworks;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -21,6 +22,8 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import net.minecraftforge.items.IItemHandler;
+
+import java.util.UUID;
 
 @GameTestHolder(ArcaneArchives.ID)
 @PrefixGameTestTemplate(false)
@@ -129,6 +132,43 @@ public final class RadiantChestGameTests {
         } finally {
             buffer.release();
         }
+        test.succeed();
+    }
+
+    @GameTest(template = "chest_fixture")
+    public static void networkMembershipAndDeviceOwnership(GameTestHelper test) {
+        RadiantChestBlockEntity chest = placeChest(test);
+        UUID owner = UUID.randomUUID();
+        UUID firstMember = UUID.randomUUID();
+        UUID secondMember = UUID.randomUUID();
+        chest.bindTo(owner);
+        chest.bindTo(firstMember);
+
+        var server = test.getLevel().getServer();
+        ArchiveNetworks networks = ArchiveNetworks.get(server);
+        test.assertTrue(owner.equals(chest.owner()) && networks.loadedDevices(server, owner, true).contains(chest),
+                "A placed device should be indexed under its initial owner");
+        test.assertTrue(networks.loadedDevices(server, firstMember, false).isEmpty(),
+                "An unrelated player should not see the device in their network");
+        test.assertTrue(networks.joinHive(owner, firstMember) && networks.joinHive(owner, secondMember),
+                "A personal network can admit two new members");
+        test.assertTrue(networks.loadedDevices(server, secondMember, false).contains(chest)
+                        && networks.loadedDevices(server, secondMember, true).isEmpty(),
+                "Hive access should include the owner device while personal access excludes it");
+        test.assertTrue(!networks.expel(firstMember, secondMember), "A member cannot expel another member");
+
+        ArchiveNetworks saved = ArchiveNetworks.load(networks.save(new CompoundTag()));
+        test.assertTrue(saved.loadedDevices(server, firstMember, false).contains(chest),
+                "The hive and device references should round-trip through saved data");
+        test.assertTrue(saved.leaveHive(owner) && firstMember.equals(saved.hiveOwner(secondMember))
+                        && saved.expel(firstMember, secondMember),
+                "After owner resignation, the oldest member should inherit hive ownership and its permissions");
+        test.assertTrue(networks.leaveHive(firstMember) && networks.expel(owner, secondMember),
+                "Leaving or expelling should remove membership");
+
+        test.setBlock(CHEST_POS, Blocks.AIR);
+        test.assertTrue(networks.devicesOwnedBy(owner, true).isEmpty(),
+                "Breaking a device should remove its network reference");
         test.succeed();
     }
 
