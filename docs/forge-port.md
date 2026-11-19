@@ -7,7 +7,7 @@ The gameplay baseline is the shipped [0.2.0.25-mixins8 source](https://github.co
 | Area | Baseline to carry forward | Port status |
 | --- | --- | --- |
 | Radiant Chest | 54 slots, configurable oversized stacks, automation, comparator, inventory transfers, conversion, naming, displayed item, routing mode and both construction recipes | Core chest and original art in place. Conversion, display tools, routing and survival acquisition remain. |
-| Trove, Tank and Amphora | Single-item Trove with a 32,768-item base capacity in the shipped source, fluid Tank, upgrades, portable contents, capabilities and remote fill and drain | Trove storage, interaction, automation and portable drops are in place. Upgrades, rendering of contents, Tank and Amphora remain. |
+| Trove, Tank and Amphora | Single-item Trove with a 32,768-item base capacity in the shipped source, 16-bucket Tank, upgrades, portable contents, capabilities and remote fill and drain | Both storage devices have automation and portable contents. The Tank supports buckets and has a fluid level renderer. Upgrades, Trove item display and Amphora remain. |
 | Networks and Manifest | Personal networks and shared hives, invitation, resignation and expulsion items, permissions, item and fluid search, location tracking, filters, Manifest Lectern and listener updates | Device ownership and hive membership persist. Player-facing letters, Manifest and routing remain. |
 | Brazier of Hoarding | Multiblock, dropped item and fluid routing, configurable range, sorting and priority rules, visual feedback and access controls | Pending |
 | Quartz progression | Radiant Resonator, Raw Quartz Cluster, Sliver of Light, raw and shaped quartz, raw and shaped storage blocks, Radiant Lantern, crafting components, sounds and Tome acquisition | Pending |
@@ -22,4 +22,4 @@ The Arsenal baseline includes Slaughtergleam, Murdergleam, Agegleam, Cleanseglea
 
 Run ./gradlew build with Java 17 to produce the reobfuscated jar in build/libs. Run ./gradlew runGameTestServer for the headless tests. The server configurations use disposable directories beneath run and automatically accept the server EULA. Keep client runs muted and use an isolated display.
 
-Headless GameTests exercise chest hopper insertion, capability simulation, transfers and slot packets, hive membership and device ownership, and Trove interactions and portable loot. Legacy extended-count deserialization has a test fixture. Whole-world upgrade support remains unverified.
+Headless GameTests exercise chest hopper insertion, capability simulation, transfers and slot packets, hive membership and device ownership, Trove interactions and portable loot, and Tank buckets, fluid automation and portable loot. Legacy extended-count deserialization has a test fixture. Whole-world upgrade support remains unverified.

@@ -2,16 +2,13 @@ package com.aranaira.arcanearchives.storage;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
-import com.aranaira.arcanearchives.network.ArchiveDeviceBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -21,7 +18,7 @@ import net.minecraftforge.items.IItemHandler;
 import javax.annotation.Nullable;
 import java.util.UUID;
 
-public final class RadiantTroveBlockEntity extends ArchiveDeviceBlockEntity {
+public final class RadiantTroveBlockEntity extends PortableStorageBlockEntity {
     public static final String STORED_ITEMS = "handler_item";
     private final RadiantTroveInventory inventory = new RadiantTroveInventory(this::contentsChanged);
     private LazyOptional<IItemHandler> itemHandler = LazyOptional.of(() -> inventory);
@@ -30,16 +27,11 @@ public final class RadiantTroveBlockEntity extends ArchiveDeviceBlockEntity {
     private long lastExtraction = -3;
 
     public RadiantTroveBlockEntity(BlockPos position, BlockState state) {
-        super(ArcaneArchives.RADIANT_TROVE_ENTITY.get(), position, state);
+        super(ArcaneArchives.RADIANT_TROVE_ENTITY.get(), position, state, STORED_ITEMS);
     }
 
     public RadiantTroveInventory inventory() {
         return inventory;
-    }
-
-    void restorePortableContents(CompoundTag tag) {
-        inventory.load(tag);
-        contentsChanged();
     }
 
     void deposit(Player player) {
@@ -83,40 +75,13 @@ public final class RadiantTroveBlockEntity extends ArchiveDeviceBlockEntity {
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        inventory.load(tag.getCompound(STORED_ITEMS));
+    CompoundTag saveContents() {
+        return inventory.save();
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        tag.put(STORED_ITEMS, inventory.save());
-    }
-
-    private void contentsChanged() {
-        setChanged();
-        if (level != null && !level.isClientSide) {
-            BlockState state = getBlockState();
-            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
-        }
-    }
-
-    @Override
-    public CompoundTag getUpdateTag() {
-        CompoundTag tag = new CompoundTag();
-        tag.put(STORED_ITEMS, inventory.save());
-        return tag;
-    }
-
-    @Override
-    public void handleUpdateTag(CompoundTag tag) {
-        inventory.load(tag.getCompound(STORED_ITEMS));
-    }
-
-    @Override
-    public ClientboundBlockEntityDataPacket getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
+    void loadContents(CompoundTag tag) {
+        inventory.load(tag);
     }
 
     @Override

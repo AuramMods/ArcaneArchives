@@ -1,5 +1,7 @@
 {
   "block.arcanearchives.radiant_chest": "Radiant Chest",
   "itemGroup.arcanearchives": "Arcane Archives",
-  "block.arcanearchives.radiant_trove": "Radiant Trove"
+  "block.arcanearchives.radiant_trove": "Radiant Trove",
+  "block.arcanearchives.radiant_tank": "Radiant Tank",
+  "tooltip.arcanearchives.radiant_tank.contents": "%s \u2014 %s / %s mB"
 }

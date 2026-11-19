@@ -5,6 +5,9 @@ import com.aranaira.arcanearchives.storage.ArchiveNetwork;
 import com.aranaira.arcanearchives.storage.RadiantChestBlock;
 import com.aranaira.arcanearchives.storage.RadiantChestBlockEntity;
 import com.aranaira.arcanearchives.storage.RadiantChestMenu;
+import com.aranaira.arcanearchives.storage.RadiantTankBlock;
+import com.aranaira.arcanearchives.storage.RadiantTankBlockEntity;
+import com.aranaira.arcanearchives.storage.RadiantTankItem;
 import com.aranaira.arcanearchives.storage.RadiantTroveBlock;
 import com.aranaira.arcanearchives.storage.RadiantTroveBlockEntity;
 import net.minecraft.network.chat.Component;
@@ -59,6 +62,15 @@ public final class ArcaneArchives {
             BLOCK_ENTITIES.register("radianttrove",
                     () -> BlockEntityType.Builder.of(RadiantTroveBlockEntity::new, RADIANT_TROVE.get()).build(null));
 
+    public static final RegistryObject<RadiantTankBlock> RADIANT_TANK = BLOCKS.register("radiant_tank",
+            () -> new RadiantTankBlock(BlockBehaviour.Properties.of()
+                    .strength(3.0F, 6000.0F).sound(SoundType.GLASS).lightLevel(state -> 15).noOcclusion()));
+    public static final RegistryObject<Item> RADIANT_TANK_ITEM = ITEMS.register("radiant_tank",
+            () -> new RadiantTankItem(RADIANT_TANK.get(), new Item.Properties()));
+    public static final RegistryObject<BlockEntityType<RadiantTankBlockEntity>> RADIANT_TANK_ENTITY =
+            BLOCK_ENTITIES.register("radianttank",
+                    () -> BlockEntityType.Builder.of(RadiantTankBlockEntity::new, RADIANT_TANK.get()).build(null));
+
     static {
         TABS.register(ID, () -> CreativeModeTab.builder()
                 .title(Component.translatable("itemGroup.arcanearchives"))
@@ -66,6 +78,7 @@ public final class ArcaneArchives {
                 .displayItems((parameters, output) -> {
                     output.accept(RADIANT_CHEST_ITEM.get());
                     output.accept(RADIANT_TROVE_ITEM.get());
+                    output.accept(RADIANT_TANK_ITEM.get());
                 })
                 .build());
     }
