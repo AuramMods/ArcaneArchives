@@ -1,5 +1,12 @@
 {
   "block.arcanearchives.radiant_chest": "Radiant Chest",
+  "gui.arcanearchives.radiant_chest.name": "Chest name",
+  "gui.arcanearchives.radiant_chest.routing_denied": "Only the owner and hive members can change routing.",
+  "arcanearchives.text.radiantchest.unnamed_chest": "Unnamed chest",
+  "arcanearchives.tooltip.radiantchest.routingmode.any1": "Braziers of Hoarding can insert",
+  "arcanearchives.tooltip.radiantchest.routingmode.any2": "any item into this Radiant Chest.",
+  "arcanearchives.tooltip.radiantchest.routingmode.nonewitems1": "Braziers of Hoarding can only insert items",
+  "arcanearchives.tooltip.radiantchest.routingmode.nonewitems2": "that this Radiant Chest already contains.",
   "itemGroup.arcanearchives": "Arcane Archives",
   "block.arcanearchives.radiant_trove": "Radiant Trove",
   "block.arcanearchives.radiant_tank": "Radiant Tank",

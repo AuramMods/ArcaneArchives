@@ -28,6 +28,10 @@ public final class ManipulationScepterItem extends Item {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         var entity = level.getBlockEntity(pos);
+        if (entity instanceof RadiantChestBlockEntity chest
+                && RadiantChestBlock.configureDisplay(chest, context.getPlayer(), context.getClickedFace())) {
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
         if (entity instanceof PortableStorageBlockEntity storage) {
             if (context.getPlayer() instanceof ServerPlayer player) {
                 NetworkHooks.openScreen(player, new SimpleMenuProvider((id, inventory, viewer) ->

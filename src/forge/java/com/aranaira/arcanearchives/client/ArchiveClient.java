@@ -54,6 +54,7 @@ public final class ArchiveClient {
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ArcaneArchives.RADIANT_TANK_ENTITY.get(), RadiantTankRenderer::new);
+        event.registerBlockEntityRenderer(ArcaneArchives.RADIANT_CHEST_ENTITY.get(), RadiantChestRenderer::new);
     }
 
     public static void receiveChestContents(ArchiveNetwork.Contents packet) {

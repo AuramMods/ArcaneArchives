@@ -11,6 +11,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
@@ -18,6 +19,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
@@ -29,6 +32,82 @@ import java.util.UUID;
 @PrefixGameTestTemplate(false)
 public final class RadiantChestGameTests {
     private static final BlockPos CHEST_POS = new BlockPos(1, 1, 1);
+
+    @GameTest(template = "chest_fixture")
+    public static void chestNameAndRoutingPermissions(GameTestHelper test) {
+        var chest = placeChest(test);
+        Player owner = nearbyPlayer(test, chest);
+        Player visitor = nearbyPlayer(test, chest);
+        chest.bindTo(owner.getUUID());
+        var ownerMenu = new RadiantChestMenu(1, owner.getInventory(), chest);
+        var visitorMenu = new RadiantChestMenu(2, visitor.getInventory(), chest);
+        int toggle = RadiantChestMenu.TOGGLE_ROUTING;
+        test.assertTrue(ownerMenu.rename(owner, "Quartz Store") && chest.getName().getString().equals("Quartz Store"),
+                "The open menu sets the chest name");
+        test.assertTrue(ownerMenu.routingAllowed() && !visitorMenu.routingAllowed()
+                        && ownerMenu.clickMenuButton(owner, toggle) && chest.existingItemsOnly()
+                        && !visitorMenu.clickMenuButton(visitor, toggle),
+                "The owner can restrict routing while unrelated viewers cannot change the setting");
+        var networks = ArchiveNetworks.get(test.getLevel().getServer());
+        test.assertTrue(networks.joinHive(owner.getUUID(), visitor.getUUID()) && visitorMenu.clickMenuButton(visitor, toggle)
+                        && !chest.existingItemsOnly(),
+                "Sharing a hive grants the viewer access to the routing control");
+        test.assertTrue(networks.expel(owner.getUUID(), visitor.getUUID()) && !visitorMenu.clickMenuButton(visitor, toggle),
+                "Losing membership removes routing access while the chest remains open");
+
+        ownerMenu.clickMenuButton(owner, toggle);
+        var restored = new RadiantChestBlockEntity(chest.getBlockPos(), chest.getBlockState());
+        restored.load(chest.saveWithoutMetadata());
+        test.assertTrue(restored.existingItemsOnly() && restored.getName().getString().equals("Quartz Store"),
+                "The name and routing mode survive save and reload");
+        test.assertTrue(ownerMenu.rename(owner, "") && chest.getCustomName() == null, "Clearing the name restores the default");
+        test.setBlock(CHEST_POS, Blocks.AIR);
+        placeChest(test);
+        test.assertTrue(!ownerMenu.rename(owner, "Old menu"), "A stale menu cannot rename a replacement chest");
+        test.succeed();
+    }
+
+    @GameTest(template = "chest_fixture")
+    public static void scepterLabelsRadiantChest(GameTestHelper test) {
+        var chest = placeChest(test);
+        Player player = nearbyPlayer(test, chest);
+        var quartz = new ItemStack(Items.QUARTZ, 5);
+        quartz.getOrCreateTag().putString("label_test", "original");
+        player.setItemInHand(InteractionHand.MAIN_HAND, quartz);
+        player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ArcaneArchives.SCEPTER_MANIPULATION.get()));
+        BlockPos pos = chest.getBlockPos();
+        var hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.SOUTH, pos, false);
+        chest.getBlockState().use(test.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        test.assertTrue(ItemStack.isSameItemSameTags(chest.displayStack(), quartz) && chest.displayStack().getCount() == 1
+                        && chest.displayFacing() == Direction.SOUTH && quartz.getCount() == 5,
+                "The Scepter copies one representative item to the clicked side without consuming it");
+
+        var viewer = new RadiantChestBlockEntity(pos, chest.getBlockState());
+        viewer.inventory().setStackInSlot(0, new ItemStack(Items.DIAMOND, 12));
+        viewer.handleUpdateTag(chest.getUpdateTag());
+        test.assertTrue(viewer.displayFacing() == Direction.SOUTH && ItemStack.isSameItemSameTags(viewer.displayStack(), quartz)
+                        && viewer.inventory().getStackInSlot(0).getCount() == 12,
+                "The client settings packet updates the display without replacing inventory contents");
+        viewer.load(chest.saveWithoutMetadata());
+        test.assertTrue(viewer.displayFacing() == Direction.SOUTH && ItemStack.isSameItemSameTags(viewer.displayStack(), quartz),
+                "The saved label retains its side, item and tags");
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        player.setShiftKeyDown(true);
+        chest.getBlockState().use(test.getLevel(), player, InteractionHand.OFF_HAND, hit);
+        viewer.handleUpdateTag(chest.getUpdateTag());
+        test.assertTrue(chest.displayStack().isEmpty() && viewer.displayStack().isEmpty(),
+                "Crouching with only the Scepter removes the label and synchronizes the clear");
+        test.succeed();
+    }
+
+    private static Player nearbyPlayer(GameTestHelper test, RadiantChestBlockEntity chest) {
+        Player player = test.makeMockSurvivalPlayer();
+        player.setUUID(UUID.randomUUID());
+        Vec3 pos = Vec3.atCenterOf(chest.getBlockPos().south());
+        player.setPos(pos.x, pos.y, pos.z);
+        return player;
+    }
 
     @GameTest(template = "chest_fixture")
     public static void automationAndPersistence(GameTestHelper test) {

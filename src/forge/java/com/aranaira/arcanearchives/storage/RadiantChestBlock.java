@@ -1,7 +1,9 @@
 package com.aranaira.arcanearchives.storage;
 
+import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
@@ -40,10 +42,33 @@ public final class RadiantChestBlock extends BaseEntityBlock {
         if (!(level.getBlockEntity(pos) instanceof RadiantChestBlockEntity chest)) {
             return InteractionResult.PASS;
         }
+        if (configureDisplay(chest, player, hit.getDirection())) {
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
         if (player instanceof ServerPlayer serverPlayer) {
             NetworkHooks.openScreen(serverPlayer, chest, pos);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    static boolean configureDisplay(RadiantChestBlockEntity chest, @Nullable Player player, Direction face) {
+        if (player == null || player.isSpectator()) {
+            return false;
+        }
+        ItemStack main = player.getMainHandItem();
+        ItemStack off = player.getOffhandItem();
+        var scepter = ArcaneArchives.SCEPTER_MANIPULATION.get();
+        if (!main.is(scepter) && !off.is(scepter)) {
+            return false;
+        }
+        ItemStack label = main.is(scepter) ? off : main;
+        if (label.isEmpty() ? !player.isShiftKeyDown() : !face.getAxis().isHorizontal()) {
+            return false;
+        }
+        if (!player.level().isClientSide) {
+            chest.setDisplay(label, face);
+        }
+        return true;
     }
 
     @Override

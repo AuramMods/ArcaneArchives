@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ArchiveNetwork {
-    private static final String PROTOCOL = "6";
+    private static final String PROTOCOL = "7";
     private static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder.named(ArcaneArchives.id("archive"))
             .networkProtocolVersion(() -> PROTOCOL)
             .clientAcceptedVersions(PROTOCOL::equals)
@@ -81,6 +81,20 @@ public final class ArchiveNetwork {
                     }
                 })
                 .add();
+        CHANNEL.messageBuilder(RenameChest.class, 7, NetworkDirection.PLAY_TO_SERVER)
+                .encoder((packet, buffer) -> {
+                    buffer.writeVarInt(packet.menuId());
+                    buffer.writeUtf(packet.name(), RadiantChestMenu.NAME_LIMIT);
+                })
+                .decoder(buffer -> new RenameChest(buffer.readVarInt(), buffer.readUtf(RadiantChestMenu.NAME_LIMIT)))
+                .consumerMainThread((packet, context) -> {
+                    ServerPlayer player = context.get().getSender();
+                    if (player != null && player.containerMenu instanceof RadiantChestMenu chest
+                            && chest.containerId == packet.menuId()) {
+                        chest.rename(player, packet.name());
+                    }
+                })
+                .add();
     }
 
     public static void sendAmphoraToggle() {
@@ -94,6 +108,12 @@ public final class ArchiveNetwork {
     }
 
     private record SetBrazierRadius(int menuId, int radius) {}
+
+    public static void renameChest(int menuId, String name) {
+        CHANNEL.sendToServer(new RenameChest(menuId, name));
+    }
+
+    private record RenameChest(int menuId, String name) {}
 
     public static void selectGemRecipe(int menuId, ResourceLocation recipe) {
         CHANNEL.sendToServer(new SelectGemRecipe(menuId, recipe));

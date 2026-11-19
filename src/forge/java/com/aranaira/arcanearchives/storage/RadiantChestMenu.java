@@ -1,8 +1,10 @@
 package com.aranaira.arcanearchives.storage;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -10,31 +12,45 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.ContainerSynchronizer;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.SlotItemHandler;
 
+import javax.annotation.Nullable;
+
 public final class RadiantChestMenu extends AbstractContainerMenu {
     public static final int SLOT_COUNT = RadiantChestInventory.SIZE + 36;
+    public static final int NAME_LIMIT = 64;
+    public static final int TOGGLE_ROUTING = 0;
 
     private final Player owner;
+    private final BlockPos pos;
     private final ContainerLevelAccess access;
     private final RadiantChestInventory chest;
+    @Nullable
+    private final RadiantChestBlockEntity serverChest;
+    private final DataSlot routingAllowed = DataSlot.standalone();
 
     public RadiantChestMenu(int id, Inventory playerInventory, FriendlyByteBuf buffer) {
-        this(id, playerInventory, buffer.readBlockPos(), new RadiantChestInventory(() -> {}));
+        this(id, playerInventory, buffer.readBlockPos(), new RadiantChestInventory(() -> {}), null);
     }
 
     public RadiantChestMenu(int id, Inventory playerInventory, RadiantChestBlockEntity chest) {
-        this(id, playerInventory, chest.getBlockPos(), chest.inventory());
+        this(id, playerInventory, chest.getBlockPos(), chest.inventory(), chest);
     }
 
-    private RadiantChestMenu(int id, Inventory playerInventory, BlockPos pos, RadiantChestInventory chest) {
+    private RadiantChestMenu(int id, Inventory playerInventory, BlockPos pos, RadiantChestInventory chest,
+                             @Nullable RadiantChestBlockEntity serverChest) {
         super(ArcaneArchives.RADIANT_CHEST_MENU.get(), id);
         owner = playerInventory.player;
+        this.pos = pos;
         access = ContainerLevelAccess.create(owner.level(), pos);
         this.chest = chest;
+        this.serverChest = serverChest;
+        addDataSlot(routingAllowed);
+        refreshRoutingAccess();
 
         for (int index = 0; index < RadiantChestInventory.SIZE; index++) {
             addSlot(new ChestSlot(chest, index, 16 + (index % 9) * 18, 16 + (index / 9) * 18));
@@ -56,7 +72,63 @@ public final class RadiantChestMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return stillValid(access, player, ArcaneArchives.RADIANT_CHEST.get());
+        return stillValid(access, player, ArcaneArchives.RADIANT_CHEST.get())
+                && (serverChest == null || !serverChest.isRemoved() && player.level().getBlockEntity(pos) == serverChest);
+    }
+
+    @Nullable
+    private RadiantChestBlockEntity viewedChest() {
+        return owner.level().getBlockEntity(pos) instanceof RadiantChestBlockEntity entity ? entity : null;
+    }
+
+    public String customNameText() {
+        var entity = viewedChest();
+        Component name = entity == null ? null : entity.getCustomName();
+        return name == null ? "" : name.getString();
+    }
+
+    public Component chestTitle() {
+        var entity = viewedChest();
+        return entity == null ? ArcaneArchives.RADIANT_CHEST.get().getName() : entity.getDisplayName();
+    }
+
+    public boolean existingItemsOnly() {
+        var entity = viewedChest();
+        return entity != null && entity.existingItemsOnly();
+    }
+
+    public boolean routingAllowed() {
+        return routingAllowed.get() != 0;
+    }
+
+    private void refreshRoutingAccess() {
+        if (serverChest != null) {
+            routingAllowed.set(serverChest.canChangeRouting(owner) ? 1 : 0);
+        }
+    }
+
+    @Override
+    public void broadcastChanges() {
+        refreshRoutingAccess();
+        super.broadcastChanges();
+    }
+
+    @Override
+    public boolean clickMenuButton(Player player, int button) {
+        if (button != TOGGLE_ROUTING || serverChest == null || !stillValid(player) || !serverChest.canChangeRouting(player)) {
+            return false;
+        }
+        serverChest.setExistingItemsOnly(!serverChest.existingItemsOnly());
+        return true;
+    }
+
+    boolean rename(Player player, String name) {
+        if (serverChest == null || player.isSpectator() || !stillValid(player) || name.length() > NAME_LIMIT) {
+            return false;
+        }
+        String filtered = SharedConstants.filterText(name);
+        serverChest.setCustomName(filtered.isEmpty() ? null : Component.literal(filtered));
+        return true;
     }
 
     @Override
