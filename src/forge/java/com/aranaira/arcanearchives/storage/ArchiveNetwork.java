@@ -2,8 +2,10 @@ package com.aranaira.arcanearchives.storage;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.client.ArchiveClient;
+import com.aranaira.arcanearchives.crafting.GemCuttersTableMenu;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerSynchronizer;
@@ -19,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ArchiveNetwork {
-    private static final String PROTOCOL = "1";
+    private static final String PROTOCOL = "2";
     private static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder.named(ArcaneArchives.id("archive"))
             .networkProtocolVersion(() -> PROTOCOL)
             .clientAcceptedVersions(PROTOCOL::equals)
@@ -49,6 +51,20 @@ public final class ArchiveNetwork {
                     }
                 })
                 .add();
+        CHANNEL.messageBuilder(SelectGemRecipe.class, 3, NetworkDirection.PLAY_TO_SERVER)
+                .encoder((packet, buffer) -> {
+                    buffer.writeVarInt(packet.menuId());
+                    buffer.writeResourceLocation(packet.recipe());
+                })
+                .decoder(buffer -> new SelectGemRecipe(buffer.readVarInt(), buffer.readResourceLocation()))
+                .consumerMainThread((packet, context) -> {
+                    ServerPlayer player = context.get().getSender();
+                    if (player != null && !player.isSpectator() && player.containerMenu instanceof GemCuttersTableMenu table
+                            && table.containerId == packet.menuId()) {
+                        table.selectRecipe(player, packet.recipe());
+                    }
+                })
+                .add();
     }
 
     public static void sendAmphoraToggle() {
@@ -56,6 +72,12 @@ public final class ArchiveNetwork {
     }
 
     private record ToggleAmphora() {}
+
+    public static void selectGemRecipe(int menuId, ResourceLocation recipe) {
+        CHANNEL.sendToServer(new SelectGemRecipe(menuId, recipe));
+    }
+
+    private record SelectGemRecipe(int menuId, ResourceLocation recipe) {}
 
     static ContainerSynchronizer chestSynchronizer(ServerPlayer player, ContainerSynchronizer vanilla) {
         return new ContainerSynchronizer() {

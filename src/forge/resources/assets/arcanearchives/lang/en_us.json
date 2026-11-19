@@ -24,5 +24,8 @@
   "item.arcanearchives.scintillating_inlay": "Scintillating Inlay",
   "item.arcanearchives.matrix_brace": "Matrix Brace",
   "item.arcanearchives.material_interface": "Material Interface",
-  "item.arcanearchives.containment_field": "Containment Field"
+  "item.arcanearchives.containment_field": "Containment Field",
+  "block.arcanearchives.gemcutters_table": "Gem Cutter's Table",
+  "gui.arcanearchives.gem_cutting.ingredient": "%s × %s",
+  "gui.arcanearchives.gem_cutting.missing_ingredient": "Unavailable ingredient"
 }

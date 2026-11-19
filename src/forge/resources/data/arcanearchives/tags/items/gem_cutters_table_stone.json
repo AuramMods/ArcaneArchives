@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:diorite",
+    {
+      "id": "#forge:marble",
+      "required": false
+    },
+    {
+      "id": "#forge:stone/marble",
+      "required": false
+    }
+  ]
+}

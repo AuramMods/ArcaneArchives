@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "DGP",
+    "WCW",
+    "QWQ"
+  ],
+  "key": {
+    "D": {
+      "tag": "arcanearchives:gem_cutters_table_stone"
+    },
+    "G": {
+      "tag": "forge:glass_panes"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    },
+    "W": {
+      "tag": "minecraft:logs"
+    },
+    "C": {
+      "item": "minecraft:crafting_table"
+    },
+    "Q": {
+      "item": "arcanearchives:raw_quartz"
+    }
+  },
+  "result": {
+    "item": "arcanearchives:gemcutters_table"
+  }
+}

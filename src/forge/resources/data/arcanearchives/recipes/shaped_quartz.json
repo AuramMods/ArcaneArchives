@@ -1,0 +1,16 @@
+{
+  "type": "arcanearchives:gem_cutting",
+  "order": 10,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "arcanearchives:raw_quartz"
+      },
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "arcanearchives:shaped_quartz",
+    "count": 1
+  }
+}

@@ -1,6 +1,10 @@
 package com.aranaira.arcanearchives;
 
 import com.aranaira.arcanearchives.config.ArchiveConfig;
+import com.aranaira.arcanearchives.crafting.GemCuttersTableBlock;
+import com.aranaira.arcanearchives.crafting.GemCuttersTableBlockEntity;
+import com.aranaira.arcanearchives.crafting.GemCuttersTableMenu;
+import com.aranaira.arcanearchives.crafting.GemCuttingRecipe;
 import com.aranaira.arcanearchives.progression.DirectionalQuartzBlock;
 import com.aranaira.arcanearchives.progression.QuartzSliverBlock;
 import com.aranaira.arcanearchives.progression.RadiantResonatorBlock;
@@ -27,10 +31,13 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.PushReaction;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -54,6 +61,9 @@ public final class ArcaneArchives {
     private static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, ID);
     private static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, ID);
     private static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, ID);
+    private static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(Registries.RECIPE_TYPE, ID);
+    private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS =
+            DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, ID);
 
     public static final RegistryObject<RadiantChestBlock> RADIANT_CHEST = BLOCKS.register("radiant_chest",
             () -> new RadiantChestBlock(BlockBehaviour.Properties.of()
@@ -133,6 +143,21 @@ public final class ArcaneArchives {
     public static final RegistryObject<Item> MATERIAL_INTERFACE = material("material_interface");
     public static final RegistryObject<Item> CONTAINMENT_FIELD = material("containment_field");
 
+    public static final RegistryObject<GemCuttersTableBlock> GEMCUTTERS_TABLE = BLOCKS.register("gemcutters_table",
+            () -> new GemCuttersTableBlock(BlockBehaviour.Properties.of().strength(3.0F).sound(SoundType.METAL)
+                    .lightLevel(state -> 15).pushReaction(PushReaction.BLOCK).noOcclusion()));
+    public static final RegistryObject<Item> GEMCUTTERS_TABLE_ITEM = ITEMS.register("gemcutters_table",
+            () -> new BlockItem(GEMCUTTERS_TABLE.get(), new Item.Properties()));
+    public static final RegistryObject<BlockEntityType<GemCuttersTableBlockEntity>> GEMCUTTERS_TABLE_ENTITY =
+            BLOCK_ENTITIES.register("gemcutterstable", () -> BlockEntityType.Builder
+                    .of(GemCuttersTableBlockEntity::new, GEMCUTTERS_TABLE.get()).build(null));
+    public static final RegistryObject<MenuType<GemCuttersTableMenu>> GEMCUTTERS_TABLE_MENU =
+            MENUS.register("gemcutters_table", () -> IForgeMenuType.create(GemCuttersTableMenu::new));
+    public static final RegistryObject<RecipeType<GemCuttingRecipe>> GEM_CUTTING_TYPE =
+            RECIPE_TYPES.register("gem_cutting", () -> RecipeType.simple(id("gem_cutting")));
+    public static final RegistryObject<RecipeSerializer<GemCuttingRecipe>> GEM_CUTTING_SERIALIZER =
+            RECIPE_SERIALIZERS.register("gem_cutting", GemCuttingRecipe.Serializer::new);
+
     static {
         TABS.register(ID, () -> CreativeModeTab.builder()
                 .title(Component.translatable("itemGroup.arcanearchives"))
@@ -142,6 +167,7 @@ public final class ArcaneArchives {
                     output.accept(RAW_QUARTZ_CLUSTER_ITEM.get());
                     output.accept(RAW_QUARTZ.get());
                     output.accept(QUARTZ_SLIVER_ITEM.get());
+                    output.accept(GEMCUTTERS_TABLE_ITEM.get());
                     output.accept(STORAGE_RAW_QUARTZ_ITEM.get());
                     output.accept(STORAGE_SHAPED_QUARTZ_ITEM.get());
                     output.accept(SHAPED_QUARTZ.get());
@@ -167,6 +193,8 @@ public final class ArcaneArchives {
         MENUS.register(modBus);
         SOUNDS.register(modBus);
         TABS.register(modBus);
+        RECIPE_TYPES.register(modBus);
+        RECIPE_SERIALIZERS.register(modBus);
         modBus.addListener(ArcaneArchives::commonSetup);
         MinecraftForge.EVENT_BUS.addListener(RadiantAmphoraItem::onLeftClickBlock);
         MinecraftForge.EVENT_BUS.addListener(RawQuartzItem::bashOnBlock);

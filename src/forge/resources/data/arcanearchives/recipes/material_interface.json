@@ -1,0 +1,28 @@
+{
+  "type": "arcanearchives:gem_cutting",
+  "order": 150,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "arcanearchives:scintillating_inlay"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "forge:ingots/gold"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "arcanearchives:shaped_quartz"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "item": "arcanearchives:material_interface",
+    "count": 1
+  }
+}

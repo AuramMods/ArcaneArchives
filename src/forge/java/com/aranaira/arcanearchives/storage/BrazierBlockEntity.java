@@ -2,6 +2,7 @@ package com.aranaira.arcanearchives.storage;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
+import com.aranaira.arcanearchives.crafting.GemCuttersTableBlockEntity;
 import com.aranaira.arcanearchives.network.ArchiveDeviceBlockEntity;
 import com.aranaira.arcanearchives.network.ArchiveNetworks;
 import net.minecraft.core.BlockPos;
@@ -63,13 +64,17 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
         }
         List<ItemTarget> targets = new ArrayList<>();
         for (ArchiveDeviceBlockEntity device : nearbyDevices()) {
-            if (device instanceof RadiantTroveBlockEntity trove
+            if (device instanceof GemCuttersTableBlockEntity table) {
+                targets.add(new ItemTarget(5000, table::acceptExisting));
+            } else if (device instanceof RadiantTroveBlockEntity trove
                     && ItemStack.isSameItemSameTags(trove.inventory().reference(), stack)) {
-                targets.add(new ItemTarget(4500, trove.inventory()));
+                targets.add(new ItemTarget(4500, (incoming, test) ->
+                        ItemHandlerHelper.insertItemStacked(trove.inventory(), incoming, test)));
             } else if (device instanceof RadiantChestBlockEntity chest) {
                 int priority = chestPriority(chest, stack);
                 if (priority >= 0) {
-                    targets.add(new ItemTarget(priority, chest.inventory()));
+                    targets.add(new ItemTarget(priority, (incoming, test) ->
+                            ItemHandlerHelper.insertItemStacked(chest.inventory(), incoming, test)));
                 }
             }
         }
@@ -77,7 +82,7 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
 
         ItemStack remaining = stack;
         for (ItemTarget target : targets) {
-            remaining = ItemHandlerHelper.insertItemStacked(target.handler(), remaining, simulate);
+            remaining = target.insert().apply(remaining, simulate);
             if (remaining.isEmpty()) {
                 break;
             }
@@ -252,7 +257,12 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
         fluids = LazyOptional.of(() -> fluidIngress);
     }
 
-    private record ItemTarget(int priority, IItemHandler handler) {}
+    private record ItemTarget(int priority, ItemInsertion insert) {}
+
+    @FunctionalInterface
+    private interface ItemInsertion {
+        ItemStack apply(ItemStack stack, boolean simulate);
+    }
 
     private final class ItemIngress implements IItemHandler {
         @Override
