@@ -2,6 +2,7 @@ package com.aranaira.arcanearchives.network;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
@@ -53,7 +54,8 @@ public abstract class ArchiveDeviceBlockEntity extends BlockEntity {
                 setChanged();
             }
             GlobalPos location = GlobalPos.of(serverLevel.dimension(), worldPosition);
-            ArchiveNetworks.get(serverLevel.getServer()).registerDevice(location, deviceId, owner);
+            ArchiveNetworks.get(serverLevel.getServer()).registerDevice(location, deviceId, owner,
+                    BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(getType()));
         }
     }
 

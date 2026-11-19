@@ -12,6 +12,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -29,8 +30,8 @@ public final class ArchiveNetworks extends SavedData {
                 "arcanearchives_networks");
     }
 
-    public void registerDevice(GlobalPos location, UUID deviceId, UUID owner) {
-        Device device = new Device(location, deviceId, owner);
+    public void registerDevice(GlobalPos location, UUID deviceId, UUID owner, ResourceLocation type) {
+        Device device = new Device(location, deviceId, owner, type);
         if (!device.equals(devices.put(location, device))) {
             setDirty();
         }
@@ -47,6 +48,10 @@ public final class ArchiveNetworks extends SavedData {
     public List<Device> devicesOwnedBy(UUID player, boolean personalOnly) {
         Set<UUID> owners = personalOnly ? Set.of(player) : hiveParticipants(player);
         return devices.values().stream().filter(device -> owners.contains(device.owner())).toList();
+    }
+
+    public long countPersonalDevices(UUID owner, ResourceLocation type) {
+        return devices.values().stream().filter(device -> owner.equals(device.owner()) && type.equals(device.type())).count();
     }
 
     public List<ArchiveDeviceBlockEntity> loadedDevices(MinecraftServer server, UUID player, boolean personalOnly) {
@@ -135,6 +140,9 @@ public final class ArchiveNetworks extends SavedData {
             location.putLong("Position", device.location().pos().asLong());
             location.putUUID("Id", device.id());
             location.putUUID("Owner", device.owner());
+            if (device.type() != null) {
+                location.putString("Type", device.type().toString());
+            }
             locations.add(location);
         }
         tag.put("Devices", locations);
@@ -165,7 +173,8 @@ public final class ArchiveNetworks extends SavedData {
             if (dimension != null && entry.contains("Position", Tag.TAG_LONG) && entry.hasUUID("Id") && entry.hasUUID("Owner")) {
                 GlobalPos location = GlobalPos.of(ResourceKey.create(Registries.DIMENSION, dimension),
                         BlockPos.of(entry.getLong("Position")));
-                networks.devices.put(location, new Device(location, entry.getUUID("Id"), entry.getUUID("Owner")));
+                ResourceLocation type = entry.contains("Type", Tag.TAG_STRING) ? ResourceLocation.tryParse(entry.getString("Type")) : null;
+                networks.devices.put(location, new Device(location, entry.getUUID("Id"), entry.getUUID("Owner"), type));
             }
         }
 
@@ -191,5 +200,5 @@ public final class ArchiveNetworks extends SavedData {
         return networks;
     }
 
-    public record Device(GlobalPos location, UUID id, UUID owner) {}
+    public record Device(GlobalPos location, UUID id, UUID owner, @Nullable ResourceLocation type) {}
 }

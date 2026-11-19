@@ -1,0 +1,9 @@
+{
+  "loader": "forge:obj",
+  "model": "arcanearchives:models/block/radiant_resonator.obj",
+  "flip_v": true,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "particle": "arcanearchives:block/block_arcanearchives_master"
+  }
+}

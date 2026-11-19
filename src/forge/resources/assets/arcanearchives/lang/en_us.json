@@ -11,5 +11,9 @@
   "tooltip.arcanearchives.amphora.unlinked": "Crouch and use on a Radiant Tank to link.",
   "tooltip.arcanearchives.amphora.target": "Tank at %s, %s, %s (%s)",
   "tooltip.arcanearchives.amphora.fill": "Collecting fluid into the tank",
-  "tooltip.arcanearchives.amphora.drain": "Placing fluid from the tank"
+  "tooltip.arcanearchives.amphora.drain": "Placing fluid from the tank",
+  "block.arcanearchives.radiant_resonator": "Radiant Resonator",
+  "block.arcanearchives.raw_quartz_cluster": "Raw Quartz Cluster",
+  "item.arcanearchives.raw_quartz": "Raw Radiant Quartz",
+  "message.arcanearchives.resonator.limit": "Your personal network can have up to %s Radiant Resonators."
 }

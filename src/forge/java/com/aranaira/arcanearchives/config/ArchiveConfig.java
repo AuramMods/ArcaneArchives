@@ -8,6 +8,9 @@ public final class ArchiveConfig {
     public static final ForgeConfigSpec.BooleanValue TROVES_DISPENSE_STACK;
     public static final ForgeConfigSpec.BooleanValue CHESTS_EXISTING_ITEMS_ONLY;
     public static final ForgeConfigSpec.BooleanValue BRAZIER_SOUND;
+    public static final ForgeConfigSpec.IntValue RESONATOR_LIMIT;
+    public static final ForgeConfigSpec.IntValue RESONATOR_TICKS;
+    public static final ForgeConfigSpec.BooleanValue RESONATOR_COMPLETION_SOUND;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -19,6 +22,12 @@ public final class ArchiveConfig {
                 .define("chestsExistingItemsOnly", false);
         BRAZIER_SOUND = builder.comment("Play the Brazier absorption sound for successful transfers.")
                 .define("brazierSound", true);
+        RESONATOR_LIMIT = builder.comment("Maximum number of placed Radiant Resonators per personal network.")
+                .defineInRange("resonatorLimit", 3, 0, Integer.MAX_VALUE);
+        RESONATOR_TICKS = builder.comment("Ticks to grow one Raw Quartz Cluster with an online owner.")
+                .defineInRange("resonatorTicks", 6000, 1, Integer.MAX_VALUE);
+        RESONATOR_COMPLETION_SOUND = builder.comment("Play a completion sound when a new quartz cluster grows.")
+                .define("resonatorCompletionSound", true);
         SERVER_SPEC = builder.build();
     }
 
