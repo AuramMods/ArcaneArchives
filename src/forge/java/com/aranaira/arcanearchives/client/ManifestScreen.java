@@ -176,8 +176,8 @@ public final class ManifestScreen extends AbstractContainerScreen<ManifestMenu> 
         }
 
         graphics.blit(overlay, leftPos, topPos, 0, 0, imageWidth, imageHeight);
-        graphics.blit(overlay, leftPos + 112, topPos + 10, 242, alphabetical ? 28 : 42, 14, 14);
-        graphics.blit(overlay, leftPos + 130, topPos + 10, 242, ascending ? 56 : 70, 14, 14);
+        graphics.blit(base, leftPos + 112, topPos + 10, 242, alphabetical ? 28 : 42, 14, 14);
+        graphics.blit(base, leftPos + 130, topPos + 10, 242, ascending ? 56 : 70, 14, 14);
         graphics.drawCenteredString(font, Component.translatable(TEXT + (menu.personalOnly() ? "personal_short" : "network_short")),
                 leftPos + 155, topPos + 13, 0xFFFFFF);
         graphics.drawCenteredString(font, Component.translatable(TEXT + "end"), leftPos + 92, topPos + 202, 0xFFFFFF);
@@ -358,7 +358,7 @@ public final class ManifestScreen extends AbstractContainerScreen<ManifestMenu> 
     }
 
     private static String compact(long amount) {
-        if (amount < 10000) {
+        if (amount < 1000) {
             return Long.toString(amount);
         }
         if (amount < 1_000_000) {

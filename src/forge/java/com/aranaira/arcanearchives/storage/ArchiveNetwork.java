@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ArchiveNetwork {
-    private static final String PROTOCOL = "4";
+    private static final String PROTOCOL = "5";
     private static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder.named(ArcaneArchives.id("archive"))
             .networkProtocolVersion(() -> PROTOCOL)
             .clientAcceptedVersions(PROTOCOL::equals)
@@ -67,6 +67,20 @@ public final class ArchiveNetwork {
                 })
                 .add();
         ManifestSync.register(CHANNEL);
+        CHANNEL.messageBuilder(SetBrazierRadius.class, 6, NetworkDirection.PLAY_TO_SERVER)
+                .encoder((packet, buffer) -> {
+                    buffer.writeVarInt(packet.menuId());
+                    buffer.writeVarInt(packet.radius());
+                })
+                .decoder(buffer -> new SetBrazierRadius(buffer.readVarInt(), buffer.readVarInt()))
+                .consumerMainThread((packet, context) -> {
+                    ServerPlayer player = context.get().getSender();
+                    if (player != null && player.containerMenu instanceof BrazierSettingsMenu brazier
+                            && brazier.containerId == packet.menuId()) {
+                        brazier.setRadius(player, packet.radius());
+                    }
+                })
+                .add();
     }
 
     public static void sendAmphoraToggle() {
@@ -74,6 +88,12 @@ public final class ArchiveNetwork {
     }
 
     private record ToggleAmphora() {}
+
+    public static void setBrazierRadius(int menuId, int radius) {
+        CHANNEL.sendToServer(new SetBrazierRadius(menuId, radius));
+    }
+
+    private record SetBrazierRadius(int menuId, int radius) {}
 
     public static void selectGemRecipe(int menuId, ResourceLocation recipe) {
         CHANNEL.sendToServer(new SelectGemRecipe(menuId, recipe));

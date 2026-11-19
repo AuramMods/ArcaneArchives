@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -16,6 +17,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -52,10 +54,30 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
         super(ArcaneArchives.BRAZIER_ENTITY.get(), pos, state);
     }
 
+    public int routingRadius() {
+        return radius;
+    }
+
+    public boolean personalOnly() {
+        return personalOnly;
+    }
+
+    public boolean canConfigure(Player player) {
+        return !player.isSpectator() && owner() != null && level instanceof ServerLevel serverLevel
+                && ArchiveNetworks.get(serverLevel.getServer()).sharesHive(owner(), player.getUUID());
+    }
+
     public void setRouting(int range, boolean personal) {
-        radius = Math.max(0, Math.min(300, range));
-        personalOnly = personal;
-        setChanged();
+        int bounded = Math.max(0, Math.min(300, range));
+        if (radius != bounded || personalOnly != personal) {
+            radius = bounded;
+            personalOnly = personal;
+            setChanged();
+            if (level instanceof ServerLevel server) {
+                BlockState state = getBlockState();
+                server.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+            }
+        }
     }
 
     public ItemStack route(ItemStack stack, boolean simulate) {
@@ -219,15 +241,35 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
+        writeSettings(tag);
+    }
+
+    private CompoundTag writeSettings(CompoundTag tag) {
         tag.putInt("range", radius);
         tag.putBoolean("subnetwork", personalOnly);
+        return tag;
     }
 
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
+        handleUpdateTag(tag);
+    }
+
+    @Override
+    public CompoundTag getUpdateTag() {
+        return writeSettings(new CompoundTag());
+    }
+
+    @Override
+    public void handleUpdateTag(CompoundTag tag) {
         radius = tag.contains("range", Tag.TAG_INT) ? Math.max(0, Math.min(300, tag.getInt("range"))) : 150;
         personalOnly = tag.getBoolean("subnetwork");
+    }
+
+    @Override
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override

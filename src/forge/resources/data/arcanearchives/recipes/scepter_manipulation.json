@@ -1,0 +1,22 @@
+{
+  "type": "arcanearchives:gem_cutting",
+  "order": 60,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "arcanearchives:scepter_revelation"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "arcanearchives:shaped_quartz"
+      },
+      "count": 1
+    }
+  ],
+  "result": {
+    "item": "arcanearchives:scepter_manipulation",
+    "count": 1
+  }
+}

@@ -24,6 +24,8 @@ import com.aranaira.arcanearchives.progression.RawQuartzItem;
 import com.aranaira.arcanearchives.storage.ArchiveNetwork;
 import com.aranaira.arcanearchives.storage.BrazierBlock;
 import com.aranaira.arcanearchives.storage.BrazierBlockEntity;
+import com.aranaira.arcanearchives.storage.BrazierSettingsMenu;
+import com.aranaira.arcanearchives.storage.ManipulationScepterItem;
 import com.aranaira.arcanearchives.storage.RadiantAmphoraItem;
 import com.aranaira.arcanearchives.storage.RadiantChestBlock;
 import com.aranaira.arcanearchives.storage.RadiantChestBlockEntity;
@@ -115,6 +117,8 @@ public final class ArcaneArchives {
     public static final RegistryObject<BlockEntityType<BrazierBlockEntity>> BRAZIER_ENTITY =
             BLOCK_ENTITIES.register("brazier",
                     () -> BlockEntityType.Builder.of(BrazierBlockEntity::new, BRAZIER.get()).build(null));
+    public static final RegistryObject<MenuType<BrazierSettingsMenu>> BRAZIER_SETTINGS_MENU =
+            MENUS.register("brazier_settings", () -> IForgeMenuType.create(BrazierSettingsMenu::new));
     public static final RegistryObject<SoundEvent> BRAZIER_ABSORB = SOUNDS.register("brazier.absorb",
             () -> SoundEvent.createVariableRangeEvent(id("brazier.absorb")));
     public static final RegistryObject<RadiantAmphoraItem> RADIANT_AMPHORA = ITEMS.register("radiant_amphora",
@@ -193,6 +197,8 @@ public final class ArcaneArchives {
     public static final RegistryObject<BlockEntityType<MonitoringCrystalBlockEntity>> MONITORING_CRYSTAL_ENTITY =
             BLOCK_ENTITIES.register("monitoring_crystal_tile_entity", () -> BlockEntityType.Builder
                     .of(MonitoringCrystalBlockEntity::new, MONITORING_CRYSTAL.get()).build(null));
+    public static final RegistryObject<Item> SCEPTER_MANIPULATION = ITEMS.register("scepter_manipulation",
+            () -> new ManipulationScepterItem(new Item.Properties().stacksTo(1)));
     public static final RegistryObject<Item> SCEPTER_REVELATION = ITEMS.register("scepter_revelation",
             () -> new RevelationScepterItem(new Item.Properties().stacksTo(1)));
     public static final RegistryObject<Item> LETTER_INVITATION = ITEMS.register("letter_invitation",
@@ -241,6 +247,7 @@ public final class ArcaneArchives {
                     output.accept(MANIFEST.get());
                     output.accept(MANIFEST_LECTERN_ITEM.get());
                     output.accept(SCEPTER_REVELATION.get());
+                    output.accept(SCEPTER_MANIPULATION.get());
                     output.accept(LETTER_INVITATION.get());
                     output.accept(LETTER_RESIGNATION.get());
                     output.accept(WRIT_EXPULSION.get());

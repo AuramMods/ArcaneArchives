@@ -7,9 +7,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -23,6 +25,39 @@ import java.util.UUID;
 @PrefixGameTestTemplate(false)
 public final class BrazierGameTests {
     private static final BlockPos BRAZIER_POS = new BlockPos(1, 1, 1);
+
+    @GameTest(template = "chest_fixture")
+    public static void brazierSettingsRespectHiveMembership(GameTestHelper test) {
+        BrazierBlockEntity brazier = placeBrazier(test);
+        Player owner = test.makeMockSurvivalPlayer();
+        owner.setUUID(brazier.owner());
+        Player member = test.makeMockSurvivalPlayer();
+        member.setUUID(UUID.randomUUID());
+        Vec3 center = Vec3.atCenterOf(brazier.getBlockPos());
+        owner.setPos(center.x, center.y, center.z + 1);
+        member.setPos(center.x, center.y, center.z + 1);
+        var ownerMenu = new BrazierSettingsMenu(1, owner.getInventory(), brazier);
+        var memberMenu = new BrazierSettingsMenu(2, member.getInventory(), brazier);
+        test.assertTrue(ownerMenu.setRadius(owner, 500) && ownerMenu.radius() == 300
+                        && !memberMenu.setRadius(member, 20) && brazier.routingRadius() == 300,
+                "Owners can change the radius within its bounds and unrelated players cannot change it");
+        var networks = ArchiveNetworks.get(test.getLevel().getServer());
+        test.assertTrue(networks.joinHive(owner.getUUID(), member.getUUID())
+                        && memberMenu.clickMenuButton(member, BrazierSettingsMenu.SHRINK)
+                        && memberMenu.clickMenuButton(member, BrazierSettingsMenu.TOGGLE_NETWORK)
+                        && memberMenu.radius() == 290 && memberMenu.personalOnly(),
+                "Shared members can resize the range by ten blocks and toggle personal routing");
+        test.assertTrue(networks.expel(owner.getUUID(), member.getUUID())
+                        && !memberMenu.stillValid(member) && !memberMenu.setRadius(member, 10),
+                "Expulsion must invalidate the open settings menu");
+        var restored = new BrazierBlockEntity(brazier.getBlockPos(), brazier.getBlockState());
+        restored.load(brazier.saveWithoutMetadata());
+        test.assertTrue(restored.routingRadius() == 290 && restored.personalOnly(),
+                "Radius and scope should survive a save and reload");
+        test.assertTrue(test.getLevel().getRecipeManager().byKey(ArcaneArchives.id("scepter_manipulation")).isPresent(),
+                "The released Scepter recipe should load");
+        test.succeed();
+    }
 
     @GameTest(template = "chest_fixture")
     public static void priorityRangeAndPersonalMode(GameTestHelper test) {

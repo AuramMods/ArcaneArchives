@@ -110,5 +110,15 @@
   "gui.arcanearchives.manifest.network_short": "H",
   "gui.arcanearchives.manifest.grid": "Toggle inventory grid",
   "gui.arcanearchives.manifest.refresh": "Refresh network contents",
-  "gui.arcanearchives.manifest.end": "End Tracking"
+  "gui.arcanearchives.manifest.end": "End Tracking",
+  "item.arcanearchives.scepter_manipulation": "Scepter of Manipulation",
+  "arcanearchives.tooltip.item.scepter_manipulation": "Modifies properties of Arcane Archives devices.",
+  "message.arcanearchives.brazier.denied": "You need access to this Brazier’s network to change its settings.",
+  "gui.arcanearchives.brazier.radius": "Routing radius in blocks",
+  "gui.arcanearchives.brazier.shrink": "Decrease the radius by 10 blocks",
+  "gui.arcanearchives.brazier.expand": "Increase the radius by 10 blocks",
+  "gui.arcanearchives.brazier.personal": "Routing to personal storage only",
+  "gui.arcanearchives.brazier.network": "Routing to shared network storage",
+  "gui.arcanearchives.brazier.show": "Show the routing range",
+  "gui.arcanearchives.brazier.hide": "Hide the routing range"
 }

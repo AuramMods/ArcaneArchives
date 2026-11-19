@@ -37,6 +37,9 @@ public final class ArchiveClient {
                             ? (RadiantAmphoraItem.drainMode(stack) ? 2.0F : 1.0F) : 0.0F);
             MenuScreens.register(ArcaneArchives.MANIFEST_MENU.get(), ManifestScreen::new);
             ManifestClient.registerListeners();
+            MenuScreens.register(ArcaneArchives.BRAZIER_SETTINGS_MENU.get(), BrazierSettingsScreen::new);
+            MinecraftForge.EVENT_BUS.addListener(BrazierRangePreview::render);
+            MinecraftForge.EVENT_BUS.addListener(BrazierRangePreview::logout);
             MinecraftForge.EVENT_BUS.addListener(ArchiveClient::onLeftClickEmpty);
         });
     }
