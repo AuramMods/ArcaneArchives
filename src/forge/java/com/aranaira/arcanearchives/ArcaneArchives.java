@@ -1,10 +1,12 @@
 package com.aranaira.arcanearchives;
 
 import com.aranaira.arcanearchives.config.ArchiveConfig;
-import com.aranaira.arcanearchives.progression.QuartzClusterBlock;
+import com.aranaira.arcanearchives.progression.DirectionalQuartzBlock;
+import com.aranaira.arcanearchives.progression.QuartzSliverBlock;
 import com.aranaira.arcanearchives.progression.RadiantResonatorBlock;
 import com.aranaira.arcanearchives.progression.RadiantResonatorBlockEntity;
 import com.aranaira.arcanearchives.progression.RadiantResonatorItem;
+import com.aranaira.arcanearchives.progression.RawQuartzItem;
 import com.aranaira.arcanearchives.storage.ArchiveNetwork;
 import com.aranaira.arcanearchives.storage.BrazierBlock;
 import com.aranaira.arcanearchives.storage.BrazierBlockEntity;
@@ -106,12 +108,17 @@ public final class ArcaneArchives {
                     .of(RadiantResonatorBlockEntity::new, RADIANT_RESONATOR.get()).build(null));
     public static final RegistryObject<SoundEvent> RESONATOR_COMPLETE = SOUNDS.register("resonator.complete",
             () -> SoundEvent.createVariableRangeEvent(id("resonator.complete")));
-    public static final RegistryObject<QuartzClusterBlock> RAW_QUARTZ_CLUSTER = BLOCKS.register("raw_quartz_cluster",
-            () -> new QuartzClusterBlock(BlockBehaviour.Properties.of().strength(1.4F).sound(SoundType.STONE)
+    public static final RegistryObject<DirectionalQuartzBlock> RAW_QUARTZ_CLUSTER = BLOCKS.register("raw_quartz_cluster",
+            () -> new DirectionalQuartzBlock(BlockBehaviour.Properties.of().strength(1.4F).sound(SoundType.STONE)
                     .lightLevel(state -> 15).requiresCorrectToolForDrops().noOcclusion()));
     public static final RegistryObject<Item> RAW_QUARTZ_CLUSTER_ITEM = ITEMS.register("raw_quartz_cluster",
             () -> new BlockItem(RAW_QUARTZ_CLUSTER.get(), new Item.Properties()));
-    public static final RegistryObject<Item> RAW_QUARTZ = ITEMS.register("raw_quartz", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> RAW_QUARTZ = ITEMS.register("raw_quartz", () -> new RawQuartzItem(new Item.Properties()));
+    public static final RegistryObject<QuartzSliverBlock> QUARTZ_SLIVER = BLOCKS.register("quartz_sliver",
+            () -> new QuartzSliverBlock(BlockBehaviour.Properties.of().instabreak().sound(SoundType.GLASS)
+                    .noCollission().noOcclusion().lightLevel(state -> 15)));
+    public static final RegistryObject<Item> QUARTZ_SLIVER_ITEM = ITEMS.register("quartz_sliver",
+            () -> new BlockItem(QUARTZ_SLIVER.get(), new Item.Properties()));
 
     static {
         TABS.register(ID, () -> CreativeModeTab.builder()
@@ -121,6 +128,7 @@ public final class ArcaneArchives {
                     output.accept(RADIANT_RESONATOR_ITEM.get());
                     output.accept(RAW_QUARTZ_CLUSTER_ITEM.get());
                     output.accept(RAW_QUARTZ.get());
+                    output.accept(QUARTZ_SLIVER_ITEM.get());
                     output.accept(RADIANT_CHEST_ITEM.get());
                     output.accept(RADIANT_TROVE_ITEM.get());
                     output.accept(RADIANT_TANK_ITEM.get());
@@ -140,6 +148,7 @@ public final class ArcaneArchives {
         TABS.register(modBus);
         modBus.addListener(ArcaneArchives::commonSetup);
         MinecraftForge.EVENT_BUS.addListener(RadiantAmphoraItem::onLeftClickBlock);
+        MinecraftForge.EVENT_BUS.addListener(RawQuartzItem::bashOnBlock);
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ArchiveConfig.SERVER_SPEC);
         ArchiveNetwork.register();
     }

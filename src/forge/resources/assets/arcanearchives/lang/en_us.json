@@ -15,5 +15,6 @@
   "block.arcanearchives.radiant_resonator": "Radiant Resonator",
   "block.arcanearchives.raw_quartz_cluster": "Raw Quartz Cluster",
   "item.arcanearchives.raw_quartz": "Raw Radiant Quartz",
-  "message.arcanearchives.resonator.limit": "Your personal network can have up to %s Radiant Resonators."
+  "message.arcanearchives.resonator.limit": "Your personal network can have up to %s Radiant Resonators.",
+  "block.arcanearchives.quartz_sliver": "Sliver of Light"
 }

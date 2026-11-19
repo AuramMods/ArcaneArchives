@@ -11,6 +11,11 @@ public final class ArchiveConfig {
     public static final ForgeConfigSpec.IntValue RESONATOR_LIMIT;
     public static final ForgeConfigSpec.IntValue RESONATOR_TICKS;
     public static final ForgeConfigSpec.BooleanValue RESONATOR_COMPLETION_SOUND;
+    public static final ForgeConfigSpec.BooleanValue CHEST_CONVERSION;
+    public static final ForgeConfigSpec.IntValue SLIVER_SINGLE_CHANCE;
+    public static final ForgeConfigSpec.IntValue SLIVER_CLUSTER_CHANCE;
+    public static final ForgeConfigSpec.IntValue SLIVER_CLUSTER_MIN;
+    public static final ForgeConfigSpec.IntValue SLIVER_CLUSTER_MAX;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -28,6 +33,12 @@ public final class ArchiveConfig {
                 .defineInRange("resonatorTicks", 6000, 1, Integer.MAX_VALUE);
         RESONATOR_COMPLETION_SOUND = builder.comment("Play a completion sound when a new quartz cluster grows.")
                 .define("resonatorCompletionSound", true);
+        CHEST_CONVERSION = builder.comment("Allow crouch-use with Raw Radiant Quartz to convert a wooden chest.")
+                .define("inWorldChestConversion", true);
+        SLIVER_SINGLE_CHANCE = builder.defineInRange("sliverSingleChance", 40, 0, 100);
+        SLIVER_CLUSTER_CHANCE = builder.defineInRange("sliverClusterChance", 20, 0, 100);
+        SLIVER_CLUSTER_MIN = builder.defineInRange("sliverClusterMinimum", 8, 1, 4096);
+        SLIVER_CLUSTER_MAX = builder.defineInRange("sliverClusterMaximum", 24, 1, 4096);
         SERVER_SPEC = builder.build();
     }
 

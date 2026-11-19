@@ -1,0 +1,9 @@
+{
+  "loader": "forge:obj",
+  "model": "arcanearchives:models/block/quartz_sliver.obj",
+  "flip_v": true,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "particle": "arcanearchives:block/block_storage_rawquartz"
+  }
+}

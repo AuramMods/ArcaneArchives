@@ -14,10 +14,10 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public final class QuartzClusterBlock extends Block {
+public class DirectionalQuartzBlock extends Block {
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
 
-    public QuartzClusterBlock(Properties properties) {
+    public DirectionalQuartzBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.UP));
     }
