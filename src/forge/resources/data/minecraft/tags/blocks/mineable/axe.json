@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "arcanearchives:gemcutters_table"
+    "arcanearchives:gemcutters_table",
+    "arcanearchives:lectern_manifest"
   ]
 }

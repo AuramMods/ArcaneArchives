@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " M ",
+    "SWS",
+    "S S"
+  ],
+  "key": {
+    "M": {
+      "item": "arcanearchives:manifest"
+    },
+    "S": {
+      "tag": "forge:rods/wooden"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "result": {
+    "item": "arcanearchives:lectern_manifest"
+  }
+}

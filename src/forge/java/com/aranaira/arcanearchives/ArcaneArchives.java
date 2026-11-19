@@ -8,6 +8,9 @@ import com.aranaira.arcanearchives.crafting.GemCuttingRecipe;
 import com.aranaira.arcanearchives.crafting.RadiantCraftingTableBlock;
 import com.aranaira.arcanearchives.crafting.RadiantCraftingTableBlockEntity;
 import com.aranaira.arcanearchives.crafting.RadiantCraftingTableMenu;
+import com.aranaira.arcanearchives.manifest.ManifestItem;
+import com.aranaira.arcanearchives.manifest.ManifestLecternBlock;
+import com.aranaira.arcanearchives.manifest.ManifestMenu;
 import com.aranaira.arcanearchives.monitoring.MonitoringCrystalBlock;
 import com.aranaira.arcanearchives.monitoring.MonitoringCrystalBlockEntity;
 import com.aranaira.arcanearchives.monitoring.RevelationScepterItem;
@@ -199,6 +202,16 @@ public final class ArcaneArchives {
     public static final RegistryObject<Item> WRIT_EXPULSION = ITEMS.register("writ_expulsion",
             () -> new HiveLetterItem(new Item.Properties(), HiveLetterItem.Kind.EXPULSION));
 
+    public static final RegistryObject<Item> MANIFEST = ITEMS.register("manifest",
+            () -> new ManifestItem(new Item.Properties().stacksTo(1)));
+    public static final RegistryObject<ManifestLecternBlock> MANIFEST_LECTERN = BLOCKS.register("lectern_manifest",
+            () -> new ManifestLecternBlock(BlockBehaviour.Properties.of().strength(1.5F).sound(SoundType.WOOD)
+                    .lightLevel(state -> 15).pushReaction(PushReaction.BLOCK).noOcclusion()));
+    public static final RegistryObject<Item> MANIFEST_LECTERN_ITEM = ITEMS.register("lectern_manifest",
+            () -> new BlockItem(MANIFEST_LECTERN.get(), new Item.Properties()));
+    public static final RegistryObject<MenuType<ManifestMenu>> MANIFEST_MENU =
+            MENUS.register("manifest", () -> new MenuType<>(ManifestMenu::new, FeatureFlags.DEFAULT_FLAGS));
+
     static {
         TABS.register(ID, () -> CreativeModeTab.builder()
                 .title(Component.translatable("itemGroup.arcanearchives"))
@@ -225,6 +238,8 @@ public final class ArcaneArchives {
                     output.accept(BRAZIER_ITEM.get());
                     output.accept(RADIANT_AMPHORA.get());
                     output.accept(MONITORING_CRYSTAL_ITEM.get());
+                    output.accept(MANIFEST.get());
+                    output.accept(MANIFEST_LECTERN_ITEM.get());
                     output.accept(SCEPTER_REVELATION.get());
                     output.accept(LETTER_INVITATION.get());
                     output.accept(LETTER_RESIGNATION.get());

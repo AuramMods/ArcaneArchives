@@ -20,6 +20,11 @@ public final class ArchiveConfig {
     public static final ForgeConfigSpec.BooleanValue RESONATOR_LOOP_ENABLED;
     public static final ForgeConfigSpec.DoubleValue RESONATOR_LOOP_VOLUME;
     public static final ForgeConfigSpec.BooleanValue PRETTY_GUIS;
+    public static final ForgeConfigSpec.BooleanValue REQUIRE_MANIFEST;
+    public static final ForgeConfigSpec.BooleanValue MANIFEST_GRID;
+    public static final ForgeConfigSpec.BooleanValue MANIFEST_KEEP_SEARCH;
+    public static final ForgeConfigSpec.BooleanValue MANIFEST_SHIFT_KEEPS_OPEN;
+    public static final ForgeConfigSpec.IntValue MANIFEST_RANGE;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -43,6 +48,8 @@ public final class ArchiveConfig {
         SLIVER_CLUSTER_CHANCE = builder.defineInRange("sliverClusterChance", 20, 0, 100);
         SLIVER_CLUSTER_MIN = builder.defineInRange("sliverClusterMinimum", 8, 1, 4096);
         SLIVER_CLUSTER_MAX = builder.defineInRange("sliverClusterMaximum", 24, 1, 4096);
+        REQUIRE_MANIFEST = builder.comment("Require a Manifest in the inventory to use its hotkey.")
+                .define("requireManifestForHotkey", true);
         SERVER_SPEC = builder.build();
 
         ForgeConfigSpec.Builder client = new ForgeConfigSpec.Builder();
@@ -52,6 +59,14 @@ public final class ArchiveConfig {
                 .defineInRange("resonatorVolume", 0.15, 0.0, 1.0);
         PRETTY_GUIS = client.comment("Use the decorated Arcane Archives inventory backgrounds.")
                 .define("usePrettyGUIs", true);
+        MANIFEST_GRID = client.comment("Draw inventory slots behind the Manifest search results.")
+                .define("manifestGrid", false);
+        MANIFEST_KEEP_SEARCH = client.comment("Restore the previous search when the Manifest is reopened.")
+                .define("manifestSearchPersistence", false);
+        MANIFEST_SHIFT_KEEPS_OPEN = client.comment("Hold Shift to keep the Manifest open when starting to track an entry.")
+                .define("manifestShiftKeepsOpen", true);
+        MANIFEST_RANGE = client.comment("Maximum distance at which the Manifest can track an inventory.")
+                .defineInRange("manifestRange", 100, 1, 30000);
         CLIENT_SPEC = client.build();
     }
 

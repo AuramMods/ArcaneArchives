@@ -1,0 +1,28 @@
+{
+  "type": "arcanearchives:gem_cutting",
+  "order": 20,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "minecraft:paper"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "forge:dyes/black"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "arcanearchives:radiant_dust"
+      },
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "arcanearchives:manifest",
+    "count": 1
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "variants": {
+    "accessor=false,facing=west": {
+      "model": "arcanearchives:block/lectern_manifest"
+    },
+    "accessor=false,facing=north": {
+      "model": "arcanearchives:block/lectern_manifest",
+      "y": 90
+    },
+    "accessor=false,facing=east": {
+      "model": "arcanearchives:block/lectern_manifest",
+      "y": 180
+    },
+    "accessor=false,facing=south": {
+      "model": "arcanearchives:block/lectern_manifest",
+      "y": 270
+    },
+    "accessor=true": {
+      "model": "arcanearchives:block/lectern_manifest_accessor"
+    }
+  }
+}

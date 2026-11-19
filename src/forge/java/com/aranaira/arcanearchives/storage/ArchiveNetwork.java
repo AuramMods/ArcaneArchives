@@ -3,6 +3,7 @@ package com.aranaira.arcanearchives.storage;
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.client.ArchiveClient;
 import com.aranaira.arcanearchives.crafting.GemCuttersTableMenu;
+import com.aranaira.arcanearchives.manifest.ManifestSync;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -21,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ArchiveNetwork {
-    private static final String PROTOCOL = "3";
+    private static final String PROTOCOL = "4";
     private static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder.named(ArcaneArchives.id("archive"))
             .networkProtocolVersion(() -> PROTOCOL)
             .clientAcceptedVersions(PROTOCOL::equals)
@@ -65,6 +66,7 @@ public final class ArchiveNetwork {
                     }
                 })
                 .add();
+        ManifestSync.register(CHANNEL);
     }
 
     public static void sendAmphoraToggle() {

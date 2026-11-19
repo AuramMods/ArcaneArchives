@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -21,6 +22,11 @@ public final class ArchiveClient {
     private ArchiveClient() {}
 
     @SubscribeEvent
+    public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
+        event.register(ManifestClient.KEY);
+    }
+
+    @SubscribeEvent
     public static void setup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
             MenuScreens.register(ArcaneArchives.RADIANT_CHEST_MENU.get(), RadiantChestScreen::new);
@@ -29,6 +35,8 @@ public final class ArchiveClient {
             ItemProperties.register(ArcaneArchives.RADIANT_AMPHORA.get(), ArcaneArchives.id("amphora_mode"),
                     (stack, level, entity, seed) -> RadiantAmphoraItem.linked(stack)
                             ? (RadiantAmphoraItem.drainMode(stack) ? 2.0F : 1.0F) : 0.0F);
+            MenuScreens.register(ArcaneArchives.MANIFEST_MENU.get(), ManifestScreen::new);
+            ManifestClient.registerListeners();
             MinecraftForge.EVENT_BUS.addListener(ArchiveClient::onLeftClickEmpty);
         });
     }
