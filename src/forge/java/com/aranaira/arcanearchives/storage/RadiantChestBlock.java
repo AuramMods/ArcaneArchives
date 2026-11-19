@@ -1,5 +1,6 @@
 package com.aranaira.arcanearchives.storage;
 
+import com.aranaira.arcanearchives.config.ArchiveConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
@@ -50,6 +51,7 @@ public final class RadiantChestBlock extends BaseEntityBlock {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof RadiantChestBlockEntity chest) {
             if (placer instanceof Player && !(placer instanceof FakePlayer)) {
                 chest.bindTo(placer.getUUID());
+                chest.setExistingItemsOnly(ArchiveConfig.CHESTS_EXISTING_ITEMS_ONLY.get());
             }
             if (stack.hasCustomHoverName()) {
                 chest.setCustomName(stack.getHoverName());

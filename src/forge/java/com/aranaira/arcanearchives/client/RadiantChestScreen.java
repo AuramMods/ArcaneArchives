@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Inventory;
 
 public final class RadiantChestScreen extends AbstractContainerScreen<RadiantChestMenu> {
     private static final ResourceLocation BACKGROUND = ArcaneArchives.id("textures/gui/radiantchest.png");
+    private static final int LABEL_COLOR = 0xFFE7CC;
 
     public RadiantChestScreen(RadiantChestMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -26,6 +27,12 @@ public final class RadiantChestScreen extends AbstractContainerScreen<RadiantChe
         renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, partialTick);
         renderTooltip(graphics, mouseX, mouseY);
+    }
+
+    @Override
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+        graphics.drawString(font, title, titleLabelX, titleLabelY, LABEL_COLOR, false);
+        graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, LABEL_COLOR, false);
     }
 
     @Override

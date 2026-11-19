@@ -2,6 +2,8 @@ package com.aranaira.arcanearchives;
 
 import com.aranaira.arcanearchives.config.ArchiveConfig;
 import com.aranaira.arcanearchives.storage.ArchiveNetwork;
+import com.aranaira.arcanearchives.storage.BrazierBlock;
+import com.aranaira.arcanearchives.storage.BrazierBlockEntity;
 import com.aranaira.arcanearchives.storage.RadiantChestBlock;
 import com.aranaira.arcanearchives.storage.RadiantChestBlockEntity;
 import com.aranaira.arcanearchives.storage.RadiantChestMenu;
@@ -12,6 +14,7 @@ import com.aranaira.arcanearchives.storage.RadiantTroveBlock;
 import com.aranaira.arcanearchives.storage.RadiantTroveBlockEntity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -40,6 +43,7 @@ public final class ArcaneArchives {
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, ID);
     private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, ID);
     private static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, ID);
+    private static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, ID);
     private static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, ID);
 
     public static final RegistryObject<RadiantChestBlock> RADIANT_CHEST = BLOCKS.register("radiant_chest",
@@ -71,6 +75,19 @@ public final class ArcaneArchives {
             BLOCK_ENTITIES.register("radianttank",
                     () -> BlockEntityType.Builder.of(RadiantTankBlockEntity::new, RADIANT_TANK.get()).build(null));
 
+    public static final RegistryObject<BrazierBlock> BRAZIER = BLOCKS.register("brazier_of_hoarding",
+            () -> new BrazierBlock(BlockBehaviour.Properties.of()
+                    .strength(3.0F).sound(SoundType.METAL).lightLevel(state -> 15).noOcclusion()));
+    public static final RegistryObject<Block> BRAZIER_FIRE = BLOCKS.register("brazier_of_hoarding_fire",
+            () -> new Block(BlockBehaviour.Properties.of().noCollission().noOcclusion().noLootTable().lightLevel(state -> 15)));
+    public static final RegistryObject<Item> BRAZIER_ITEM = ITEMS.register("brazier_of_hoarding",
+            () -> new BlockItem(BRAZIER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockEntityType<BrazierBlockEntity>> BRAZIER_ENTITY =
+            BLOCK_ENTITIES.register("brazier",
+                    () -> BlockEntityType.Builder.of(BrazierBlockEntity::new, BRAZIER.get()).build(null));
+    public static final RegistryObject<SoundEvent> BRAZIER_ABSORB = SOUNDS.register("brazier.absorb",
+            () -> SoundEvent.createVariableRangeEvent(id("brazier.absorb")));
+
     static {
         TABS.register(ID, () -> CreativeModeTab.builder()
                 .title(Component.translatable("itemGroup.arcanearchives"))
@@ -79,6 +96,7 @@ public final class ArcaneArchives {
                     output.accept(RADIANT_CHEST_ITEM.get());
                     output.accept(RADIANT_TROVE_ITEM.get());
                     output.accept(RADIANT_TANK_ITEM.get());
+                    output.accept(BRAZIER_ITEM.get());
                 })
                 .build());
     }
@@ -89,6 +107,7 @@ public final class ArcaneArchives {
         ITEMS.register(modBus);
         BLOCK_ENTITIES.register(modBus);
         MENUS.register(modBus);
+        SOUNDS.register(modBus);
         TABS.register(modBus);
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ArchiveConfig.SERVER_SPEC);
         ArchiveNetwork.register();

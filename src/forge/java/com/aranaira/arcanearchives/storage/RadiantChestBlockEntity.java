@@ -24,6 +24,7 @@ public final class RadiantChestBlockEntity extends ArchiveDeviceBlockEntity impl
     private final RadiantChestInventory inventory = new RadiantChestInventory(this::setChanged);
     private LazyOptional<IItemHandler> itemHandler = LazyOptional.of(() -> inventory);
     private Component customName;
+    private boolean existingItemsOnly;
 
     public RadiantChestBlockEntity(BlockPos pos, BlockState state) {
         super(ArcaneArchives.RADIANT_CHEST_ENTITY.get(), pos, state);
@@ -36,6 +37,15 @@ public final class RadiantChestBlockEntity extends ArchiveDeviceBlockEntity impl
     public void setCustomName(Component name) {
         customName = name;
         setChanged();
+    }
+
+    public void setExistingItemsOnly(boolean existingItemsOnly) {
+        this.existingItemsOnly = existingItemsOnly;
+        setChanged();
+    }
+
+    public boolean existingItemsOnly() {
+        return existingItemsOnly;
     }
 
     @Override
@@ -63,6 +73,7 @@ public final class RadiantChestBlockEntity extends ArchiveDeviceBlockEntity impl
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         tag.put("inventory", inventory.serializeNBT());
+        tag.putInt("routingType", existingItemsOnly ? 1 : 0);
         if (customName != null) {
             tag.putString("CustomName", Component.Serializer.toJson(customName));
         }
@@ -72,6 +83,7 @@ public final class RadiantChestBlockEntity extends ArchiveDeviceBlockEntity impl
     public void load(CompoundTag tag) {
         super.load(tag);
         inventory.deserializeNBT(tag.getCompound("inventory"));
+        existingItemsOnly = tag.getInt("routingType") == 1;
         if (tag.contains("CustomName", Tag.TAG_STRING)) {
             customName = Component.Serializer.fromJson(tag.getString("CustomName"));
         } else {

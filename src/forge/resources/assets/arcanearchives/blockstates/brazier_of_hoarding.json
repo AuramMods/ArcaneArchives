@@ -1,0 +1,14 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "arcanearchives:block/brazier_of_hoarding"
+      }
+    },
+    {
+      "apply": {
+        "model": "arcanearchives:block/brazier_of_hoarding_fire"
+      }
+    }
+  ]
+}

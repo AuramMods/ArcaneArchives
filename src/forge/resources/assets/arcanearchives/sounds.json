@@ -1,0 +1,9 @@
+{
+  "brazier.absorb": {
+    "sounds": [
+      "arcanearchives:brazier_absorb1",
+      "arcanearchives:brazier_absorb2",
+      "arcanearchives:brazier_absorb3"
+    ]
+  }
+}
