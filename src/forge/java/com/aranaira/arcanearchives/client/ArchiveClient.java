@@ -2,12 +2,16 @@ package com.aranaira.arcanearchives.client;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.storage.ArchiveNetwork;
+import com.aranaira.arcanearchives.storage.RadiantAmphoraItem;
 import com.aranaira.arcanearchives.storage.RadiantChestMenu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -18,7 +22,19 @@ public final class ArchiveClient {
 
     @SubscribeEvent
     public static void setup(FMLClientSetupEvent event) {
-        event.enqueueWork(() -> MenuScreens.register(ArcaneArchives.RADIANT_CHEST_MENU.get(), RadiantChestScreen::new));
+        event.enqueueWork(() -> {
+            MenuScreens.register(ArcaneArchives.RADIANT_CHEST_MENU.get(), RadiantChestScreen::new);
+            ItemProperties.register(ArcaneArchives.RADIANT_AMPHORA.get(), ArcaneArchives.id("amphora_mode"),
+                    (stack, level, entity, seed) -> RadiantAmphoraItem.linked(stack)
+                            ? (RadiantAmphoraItem.drainMode(stack) ? 2.0F : 1.0F) : 0.0F);
+            MinecraftForge.EVENT_BUS.addListener(ArchiveClient::onLeftClickEmpty);
+        });
+    }
+
+    private static void onLeftClickEmpty(PlayerInteractEvent.LeftClickEmpty event) {
+        if (Minecraft.getInstance().getConnection() != null && event.getEntity().getMainHandItem().is(ArcaneArchives.RADIANT_AMPHORA.get())) {
+            ArchiveNetwork.sendAmphoraToggle();
+        }
     }
 
     @SubscribeEvent

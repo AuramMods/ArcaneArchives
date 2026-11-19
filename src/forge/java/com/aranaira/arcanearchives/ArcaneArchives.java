@@ -4,6 +4,7 @@ import com.aranaira.arcanearchives.config.ArchiveConfig;
 import com.aranaira.arcanearchives.storage.ArchiveNetwork;
 import com.aranaira.arcanearchives.storage.BrazierBlock;
 import com.aranaira.arcanearchives.storage.BrazierBlockEntity;
+import com.aranaira.arcanearchives.storage.RadiantAmphoraItem;
 import com.aranaira.arcanearchives.storage.RadiantChestBlock;
 import com.aranaira.arcanearchives.storage.RadiantChestBlockEntity;
 import com.aranaira.arcanearchives.storage.RadiantChestMenu;
@@ -25,11 +26,13 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraftforge.common.extensions.IForgeMenuType;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -87,6 +90,8 @@ public final class ArcaneArchives {
                     () -> BlockEntityType.Builder.of(BrazierBlockEntity::new, BRAZIER.get()).build(null));
     public static final RegistryObject<SoundEvent> BRAZIER_ABSORB = SOUNDS.register("brazier.absorb",
             () -> SoundEvent.createVariableRangeEvent(id("brazier.absorb")));
+    public static final RegistryObject<RadiantAmphoraItem> RADIANT_AMPHORA = ITEMS.register("radiant_amphora",
+            () -> new RadiantAmphoraItem(new Item.Properties().stacksTo(1)));
 
     static {
         TABS.register(ID, () -> CreativeModeTab.builder()
@@ -97,6 +102,7 @@ public final class ArcaneArchives {
                     output.accept(RADIANT_TROVE_ITEM.get());
                     output.accept(RADIANT_TANK_ITEM.get());
                     output.accept(BRAZIER_ITEM.get());
+                    output.accept(RADIANT_AMPHORA.get());
                 })
                 .build());
     }
@@ -109,8 +115,14 @@ public final class ArcaneArchives {
         MENUS.register(modBus);
         SOUNDS.register(modBus);
         TABS.register(modBus);
+        modBus.addListener(ArcaneArchives::commonSetup);
+        MinecraftForge.EVENT_BUS.addListener(RadiantAmphoraItem::onLeftClickBlock);
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ArchiveConfig.SERVER_SPEC);
         ArchiveNetwork.register();
+    }
+
+    private static void commonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(RadiantAmphoraItem::registerDispenser);
     }
 
     public static ResourceLocation id(String path) {

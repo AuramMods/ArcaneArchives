@@ -39,7 +39,23 @@ public final class ArchiveNetwork {
                 .consumerMainThread((packet, context) -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
                         () -> () -> ArchiveClient.receiveChestSlot(packet)))
                 .add();
+        CHANNEL.messageBuilder(ToggleAmphora.class, 2, NetworkDirection.PLAY_TO_SERVER)
+                .encoder((packet, data) -> {})
+                .decoder(data -> new ToggleAmphora())
+                .consumerMainThread((packet, context) -> {
+                    ServerPlayer player = context.get().getSender();
+                    if (player != null && player.getMainHandItem().is(ArcaneArchives.RADIANT_AMPHORA.get())) {
+                        RadiantAmphoraItem.toggleMode(player.getMainHandItem());
+                    }
+                })
+                .add();
     }
+
+    public static void sendAmphoraToggle() {
+        CHANNEL.sendToServer(new ToggleAmphora());
+    }
+
+    private record ToggleAmphora() {}
 
     static ContainerSynchronizer chestSynchronizer(ServerPlayer player, ContainerSynchronizer vanilla) {
         return new ContainerSynchronizer() {

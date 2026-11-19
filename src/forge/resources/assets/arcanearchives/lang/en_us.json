@@ -3,6 +3,13 @@
   "itemGroup.arcanearchives": "Arcane Archives",
   "block.arcanearchives.radiant_trove": "Radiant Trove",
   "block.arcanearchives.radiant_tank": "Radiant Tank",
-  "tooltip.arcanearchives.radiant_tank.contents": "%s \u2014 %s / %s mB",
-  "block.arcanearchives.brazier_of_hoarding": "Brazier of Hoarding"
+  "tooltip.arcanearchives.radiant_tank.contents": "%s — %s / %s mB",
+  "block.arcanearchives.brazier_of_hoarding": "Brazier of Hoarding",
+  "item.arcanearchives.radiant_amphora": "Radiant Amphora",
+  "message.arcanearchives.amphora.denied": "You need access to this Radiant Tank to link it.",
+  "message.arcanearchives.amphora.linked": "Radiant Amphora linked to the tank.",
+  "tooltip.arcanearchives.amphora.unlinked": "Crouch and use on a Radiant Tank to link.",
+  "tooltip.arcanearchives.amphora.target": "Tank at %s, %s, %s (%s)",
+  "tooltip.arcanearchives.amphora.fill": "Collecting fluid into the tank",
+  "tooltip.arcanearchives.amphora.drain": "Placing fluid from the tank"
 }
