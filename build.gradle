@@ -47,11 +47,23 @@ repositories {
         url = 'https://maven.theillusivec4.top/'
         content { includeGroup 'top.theillusivec4.curios' }
     }
+    maven {
+        url = 'https://maven.blamejared.com/'
+        content {
+            includeGroup 'mezz.jei'
+            includeGroup 'com.blamejared.crafttweaker'
+        }
+    }
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     compileOnly fg.deobf('top.theillusivec4.curios:curios-forge:5.14.1+1.20.1:api')
+    compileOnly fg.deobf('mezz.jei:jei-1.20.1-common-api:15.20.0.129')
+    compileOnly fg.deobf('mezz.jei:jei-1.20.1-forge-api:15.20.0.129')
+    compileOnly fg.deobf('com.blamejared.crafttweaker:CraftTweaker-forge-1.20.1:14.0.61') {
+        transitive = false
+    }
 }
 
 tasks.named('processResources', ProcessResources) {

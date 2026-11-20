@@ -126,6 +126,7 @@ final class GemCasting {
         target.teleportTo(first.x, first.y, first.z);
         player.connection.teleport(second.x, second.y, second.z, player.getYRot() + 180, player.getXRot());
         ArsenalGems.spend(player, gem, 1);
+        player.getCooldowns().addCooldown(gem.stack().getItem(), 10);
         particles(level, GemType.SWITCHGLEAM, first.add(0, 1, 0));
         particles(level, GemType.SWITCHGLEAM, second.add(0, 1, 0));
     }

@@ -1,6 +1,7 @@
 package com.aranaira.arcanearchives.client;
 
 import com.aranaira.arcanearchives.config.ArchiveConfig;
+import com.aranaira.arcanearchives.integration.jei.ArchiveJeiPlugin;
 import com.aranaira.arcanearchives.manifest.ManifestContents;
 import com.aranaira.arcanearchives.manifest.ManifestMenu;
 import com.aranaira.arcanearchives.manifest.ManifestSync;
@@ -23,6 +24,7 @@ import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.fml.ModList;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -75,13 +77,19 @@ public final class ManifestClient {
     }
 
     private static void screenKey(ScreenEvent.KeyPressed.Pre event) {
-        if (KEY.isActiveAndMatches(InputConstants.getKey(event.getKeyCode(), event.getScanCode()))
-                && event.getScreen() instanceof AbstractContainerScreen<?> screen) {
+        if (!KEY.isActiveAndMatches(InputConstants.getKey(event.getKeyCode(), event.getScanCode()))) {
+            return;
+        }
+        ItemStack item = ModList.get().isLoaded("jei") ? ArchiveJeiPlugin.hoveredItem() : ItemStack.EMPTY;
+        if (item.isEmpty() && event.getScreen() instanceof AbstractContainerScreen<?> screen) {
             Slot slot = screen.getSlotUnderMouse();
             if (slot != null && slot.hasItem()) {
-                ManifestSync.request(slot.getItem());
-                event.setCanceled(true);
+                item = slot.getItem();
             }
+        }
+        if (!item.isEmpty()) {
+            ManifestSync.request(item);
+            event.setCanceled(true);
         }
     }
 

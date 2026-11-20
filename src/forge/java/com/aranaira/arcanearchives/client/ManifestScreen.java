@@ -2,6 +2,7 @@ package com.aranaira.arcanearchives.client;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
+import com.aranaira.arcanearchives.integration.jei.ArchiveJeiPlugin;
 import com.aranaira.arcanearchives.manifest.ManifestContents;
 import com.aranaira.arcanearchives.manifest.ManifestMenu;
 import net.minecraft.ChatFormatting;
@@ -47,6 +48,8 @@ public final class ManifestScreen extends AbstractContainerScreen<ManifestMenu> 
     private static boolean ascending;
 
     private EditBox search;
+    private String previousJeiFilter;
+    private boolean jeiFilterChanged;
     private List<Entry> visible = List.of();
     private int lastRevision = -1;
     private BlockPos lastPosition;
@@ -61,6 +64,9 @@ public final class ManifestScreen extends AbstractContainerScreen<ManifestMenu> 
     @Override
     protected void init() {
         super.init();
+        if (search == null && ModList.get().isLoaded("jei")) {
+            previousJeiFilter = ArchiveJeiPlugin.filter();
+        }
         String query = search == null ? ArchiveConfig.MANIFEST_KEEP_SEARCH.get() ? previousSearch : "" : search.getValue();
         search = new EditBox(font, leftPos + 13, topPos + 13, 86, 12, Component.translatable(TEXT + "search"));
         search.setBordered(false);
@@ -72,10 +78,12 @@ public final class ManifestScreen extends AbstractContainerScreen<ManifestMenu> 
         search.setResponder(value -> {
             firstRow = 0;
             search.setSuggestion(value.isEmpty() ? Component.translatable(TEXT + "search").getString() : null);
+            updateJeiFilter(value);
             updateEntries();
         });
         addRenderableWidget(search);
         setInitialFocus(search);
+        updateJeiFilter(query);
         updateEntries();
     }
 
@@ -92,7 +100,17 @@ public final class ManifestScreen extends AbstractContainerScreen<ManifestMenu> 
         if (search != null) {
             previousSearch = search.getValue();
         }
+        if (jeiFilterChanged) {
+            ArchiveJeiPlugin.setFilter(previousJeiFilter);
+        }
         super.removed();
+    }
+
+    private void updateJeiFilter(String query) {
+        if (previousJeiFilter != null && ArchiveConfig.MANIFEST_JEI_SYNC.get()) {
+            ArchiveJeiPlugin.setFilter(query);
+            jeiFilterChanged = true;
+        }
     }
 
     private void updateEntries() {
@@ -180,6 +198,9 @@ public final class ManifestScreen extends AbstractContainerScreen<ManifestMenu> 
         graphics.blit(base, leftPos + 130, topPos + 10, 242, ascending ? 56 : 70, 14, 14);
         graphics.drawCenteredString(font, Component.translatable(TEXT + (menu.personalOnly() ? "personal_short" : "network_short")),
                 leftPos + 155, topPos + 13, 0xFFFFFF);
+        if (previousJeiFilter != null) {
+            graphics.blit(base, leftPos + 166, topPos + 10, 242, ArchiveConfig.MANIFEST_JEI_SYNC.get() ? 98 : 84, 14, 14);
+        }
         graphics.drawCenteredString(font, Component.translatable(TEXT + "end"), leftPos + 92, topPos + 202, 0xFFFFFF);
         if (lastRow() > 0) {
             int y = topPos + GRID_Y + (SCROLL_HEIGHT - 14) * firstRow / lastRow();
@@ -243,6 +264,13 @@ public final class ManifestScreen extends AbstractContainerScreen<ManifestMenu> 
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (previousJeiFilter != null && button == 0 && hasShiftDown() && search.isMouseOver(mouseX, mouseY)) {
+            String jeiFilter = ArchiveJeiPlugin.filter();
+            if (jeiFilter != null) {
+                search.setValue(jeiFilter);
+                return true;
+            }
+        }
         if (button == 1 && search.isMouseOver(mouseX, mouseY)) {
             search.setValue("");
             return true;
@@ -254,6 +282,11 @@ public final class ManifestScreen extends AbstractContainerScreen<ManifestMenu> 
                     case "sort_count", "sort_name" -> alphabetical = !alphabetical;
                     case "descending", "ascending" -> ascending = !ascending;
                     case "network", "personal" -> clickServerButton(ManifestMenu.TOGGLE_PERSONAL);
+                    case "jei_sync" -> {
+                        ArchiveConfig.MANIFEST_JEI_SYNC.set(!ArchiveConfig.MANIFEST_JEI_SYNC.get());
+                        ArchiveConfig.CLIENT_SPEC.save();
+                        updateJeiFilter(search.getValue());
+                    }
                     case "grid" -> {
                         ArchiveConfig.MANIFEST_GRID.set(!ArchiveConfig.MANIFEST_GRID.get());
                         ArchiveConfig.CLIENT_SPEC.save();
@@ -329,6 +362,9 @@ public final class ManifestScreen extends AbstractContainerScreen<ManifestMenu> 
         }
         if (isHovering(148, 10, 14, 14, x, y)) {
             return menu.personalOnly() ? "personal" : "network";
+        }
+        if (previousJeiFilter != null && isHovering(166, 10, 14, 14, x, y)) {
+            return "jei_sync";
         }
         if (isHovering(48, 200, 88, 14, x, y)) {
             return "end";

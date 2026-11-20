@@ -31,6 +31,7 @@ public final class ArchiveConfig {
     public static final ForgeConfigSpec.BooleanValue REQUIRE_MANIFEST;
     public static final ForgeConfigSpec.BooleanValue MANIFEST_GRID;
     public static final ForgeConfigSpec.BooleanValue MANIFEST_KEEP_SEARCH;
+    public static final ForgeConfigSpec.BooleanValue MANIFEST_JEI_SYNC;
     public static final ForgeConfigSpec.BooleanValue MANIFEST_SHIFT_KEEPS_OPEN;
     public static final ForgeConfigSpec.IntValue MANIFEST_RANGE;
 
@@ -88,6 +89,8 @@ public final class ArchiveConfig {
                 .define("manifestGrid", false);
         MANIFEST_KEEP_SEARCH = client.comment("Restore the previous search when the Manifest is reopened.")
                 .define("manifestSearchPersistence", false);
+        MANIFEST_JEI_SYNC = client.comment("Mirror Manifest searches in Just Enough Items while the Manifest is open.")
+                .define("manifestJeiSynchronise", false);
         MANIFEST_SHIFT_KEEPS_OPEN = client.comment("Hold Shift to keep the Manifest open when starting to track an entry.")
                 .define("manifestShiftKeepsOpen", true);
         MANIFEST_RANGE = client.comment("Maximum distance at which the Manifest can track an inventory.")

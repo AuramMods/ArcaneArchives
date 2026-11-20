@@ -44,6 +44,11 @@ public final class GemCuttingRecipe implements Recipe<Container> {
 
     private GemCuttingRecipe(ResourceLocation id, int order, List<Requirement> requirements, ItemStack result,
                              HiveRequirement hiveRequirement, boolean signResult, boolean requiresArsenal) {
+        validateSize(requirements.size());
+        requirements.forEach(requirement -> validateCount(requirement.count()));
+        if (result.isEmpty() || result.getCount() > result.getMaxStackSize()) {
+            throw new JsonSyntaxException("Invalid Gem Cutter result stack");
+        }
         this.id = id;
         this.order = order;
         this.requirements = List.copyOf(requirements);
@@ -59,6 +64,10 @@ public final class GemCuttingRecipe implements Recipe<Container> {
 
     public List<Requirement> requirements() {
         return requirements;
+    }
+
+    public GemCuttingRecipe withContents(List<Requirement> requirements, ItemStack result) {
+        return new GemCuttingRecipe(id, order, requirements, result, hiveRequirement, signResult, requiresArsenal);
     }
 
     boolean allowedInHive(int requirementsMet) {
@@ -139,6 +148,18 @@ public final class GemCuttingRecipe implements Recipe<Container> {
 
     public record Requirement(Ingredient ingredient, int count) {}
 
+    private static void validateSize(int size) {
+        if (size < 1 || size > MAX_INGREDIENTS) {
+            throw new JsonSyntaxException("A Gem Cutter recipe requires 1 to " + MAX_INGREDIENTS + " ingredients");
+        }
+    }
+
+    private static void validateCount(int count) {
+        if (count < 1 || count > MAX_INGREDIENT_COUNT) {
+            throw new JsonSyntaxException("Gem Cutter ingredient count must be between 1 and " + MAX_INGREDIENT_COUNT);
+        }
+    }
+
     private enum HiveRequirement {
         ANY("any"), CAN_INVITE("can_invite"), MEMBER("member"), OWNER("owner");
 
@@ -193,13 +214,9 @@ public final class GemCuttingRecipe implements Recipe<Container> {
             for (JsonElement entry : entries) {
                 JsonObject ingredient = GsonHelper.convertToJsonObject(entry, "ingredient");
                 int count = GsonHelper.getAsInt(ingredient, "count", 1);
-                validateCount(count);
                 requirements.add(new Requirement(Ingredient.fromJson(ingredient.get("ingredient")), count));
             }
             ItemStack result = CraftingHelper.getItemStack(GsonHelper.getAsJsonObject(json, "result"), true);
-            if (result.isEmpty() || result.getCount() > result.getMaxStackSize()) {
-                throw new JsonSyntaxException("Invalid Gem Cutter result stack");
-            }
             return new GemCuttingRecipe(id, GsonHelper.getAsInt(json, "order", 0), requirements, result,
                     HiveRequirement.parse(GsonHelper.getAsString(json, "hive_requirement", "any")),
                     GsonHelper.getAsBoolean(json, "sign_result", false), GsonHelper.getAsBoolean(json, "arsenal", false));
@@ -214,7 +231,6 @@ public final class GemCuttingRecipe implements Recipe<Container> {
             for (int index = 0; index < size; index++) {
                 Ingredient ingredient = Ingredient.fromNetwork(buffer);
                 int count = buffer.readVarInt();
-                validateCount(count);
                 requirements.add(new Requirement(ingredient, count));
             }
             return new GemCuttingRecipe(id, order, requirements, buffer.readItem(),
@@ -235,16 +251,5 @@ public final class GemCuttingRecipe implements Recipe<Container> {
             buffer.writeBoolean(recipe.requiresArsenal);
         }
 
-        private static void validateSize(int size) {
-            if (size < 1 || size > MAX_INGREDIENTS) {
-                throw new JsonSyntaxException("A Gem Cutter recipe requires 1 to " + MAX_INGREDIENTS + " ingredients");
-            }
-        }
-
-        private static void validateCount(int count) {
-            if (count < 1 || count > MAX_INGREDIENT_COUNT) {
-                throw new JsonSyntaxException("Gem Cutter ingredient count must be between 1 and " + MAX_INGREDIENT_COUNT);
-            }
-        }
     }
 }
