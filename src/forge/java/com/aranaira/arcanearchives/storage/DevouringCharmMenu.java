@@ -1,6 +1,10 @@
 package com.aranaira.arcanearchives.storage;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.arsenal.ArcaneGemItem;
+import com.aranaira.arcanearchives.arsenal.GemCharge;
+import com.aranaira.arcanearchives.arsenal.GemType;
+import com.aranaira.arcanearchives.config.ArchiveConfig;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -139,6 +143,10 @@ public final class DevouringCharmMenu extends AbstractContainerMenu {
     }
 
     private static ItemStack drain(ItemStack stack) {
+        if (isParchtear(stack)) {
+            GemCharge.restore(stack, -1);
+            return stack;
+        }
         return FluidUtil.getFluidHandler(stack).map(handler -> {
             for (int i = 0; i < handler.getTanks(); i++) {
                 var stored = handler.getFluidInTank(i);
@@ -148,6 +156,10 @@ public final class DevouringCharmMenu extends AbstractContainerMenu {
             }
             return handler.getContainer();
         }).orElse(stack);
+    }
+
+    private static boolean isParchtear(ItemStack stack) {
+        return ArchiveConfig.ARSENAL_ENABLED.get() && stack.getItem() instanceof ArcaneGemItem gem && gem.type() == GemType.PARCHTEAR;
     }
 
     private final class PlayerSlot extends Slot {
@@ -195,7 +207,7 @@ public final class DevouringCharmMenu extends AbstractContainerMenu {
         @Override
         public boolean mayPlace(ItemStack stack) {
             return super.mayPlace(stack) && !stack.is(ArcaneArchives.RADIANT_AMPHORA.get())
-                    && FluidUtil.getFluidHandler(stack).isPresent();
+                    && (isParchtear(stack) || FluidUtil.getFluidHandler(stack).isPresent());
         }
 
         @Override

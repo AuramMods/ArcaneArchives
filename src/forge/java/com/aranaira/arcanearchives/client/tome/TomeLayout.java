@@ -183,7 +183,8 @@ final class TomeLayout {
             return null;
         }
         ResourceLocation path = ResourceLocation.tryParse(id);
-        return path == null ? null : path.withPath(value -> "textures/" + value + ".png");
+        return path == null ? null : path.withPath(value -> "textures/"
+                + (value.startsWith("items/") ? "item/" + value.substring(6) : value) + ".png");
     }
 
     private void rule() {
@@ -211,6 +212,7 @@ final class TomeLayout {
             default -> recipe -> true;
         };
         var recipes = level.getRecipeManager().getRecipes().stream().filter(matcher)
+                .filter(recipe -> !(recipe instanceof GemCuttingRecipe cutting) || cutting.enabled())
                 .filter(recipe -> recipe.getResultItem(level.registryAccess()).is(output.getItem()))
                 .sorted(Comparator.comparing(Recipe::getId)).toList();
         var archive = recipes.stream().filter(recipe -> recipe.getId().getNamespace().equals("arcanearchives")).toList();

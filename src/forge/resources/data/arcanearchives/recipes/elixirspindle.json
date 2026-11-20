@@ -1,0 +1,47 @@
+{
+  "type": "arcanearchives:gem_cutting",
+  "order": 310,
+  "arsenal": true,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "arcanearchives:shaped_quartz"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "forge:dyes/purple"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:brewing_stand"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:emerald"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:redstone"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:glowstone_dust"
+      },
+      "count": 4
+    }
+  ],
+  "result": {
+    "item": "arcanearchives:elixirspindle",
+    "count": 1
+  }
+}

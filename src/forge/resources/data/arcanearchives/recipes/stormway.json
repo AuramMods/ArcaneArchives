@@ -1,0 +1,35 @@
+{
+  "type": "arcanearchives:gem_cutting",
+  "order": 360,
+  "arsenal": true,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "arcanearchives:shaped_quartz"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "forge:dyes/yellow"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:redstone"
+      },
+      "count": 16
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:iron_bars"
+      },
+      "count": 8
+    }
+  ],
+  "result": {
+    "item": "arcanearchives:stormway",
+    "count": 1
+  }
+}

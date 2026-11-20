@@ -1,0 +1,41 @@
+{
+  "type": "arcanearchives:gem_cutting",
+  "order": 230,
+  "arsenal": true,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "arcanearchives:shaped_quartz"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "forge:dyes/red"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:diamond"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:gold_ingot"
+      },
+      "count": 2
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:lapis_block"
+      },
+      "count": 2
+    }
+  ],
+  "result": {
+    "item": "arcanearchives:slaughtergleam",
+    "count": 1
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "type": "arcanearchives:gem_cutting",
+  "order": 290,
+  "arsenal": true,
+  "ingredients": [
+    {
+      "ingredient": {
+        "item": "arcanearchives:shaped_quartz"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "tag": "forge:dyes/pink"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:anvil"
+      },
+      "count": 1
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:oak_sign"
+      },
+      "count": 30
+    }
+  ],
+  "result": {
+    "item": "arcanearchives:orderstone",
+    "count": 1
+  }
+}

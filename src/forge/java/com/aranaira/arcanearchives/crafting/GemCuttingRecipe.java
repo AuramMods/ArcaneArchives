@@ -1,6 +1,7 @@
 package com.aranaira.arcanearchives.crafting;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.config.ArchiveConfig;
 import com.aranaira.arcanearchives.network.ArchiveNetworks;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -35,19 +36,21 @@ public final class GemCuttingRecipe implements Recipe<Container> {
     private final ItemStack result;
     private final HiveRequirement hiveRequirement;
     private final boolean signResult;
+    private final boolean requiresArsenal;
 
     public GemCuttingRecipe(ResourceLocation id, int order, List<Requirement> requirements, ItemStack result) {
-        this(id, order, requirements, result, HiveRequirement.ANY, false);
+        this(id, order, requirements, result, HiveRequirement.ANY, false, false);
     }
 
     private GemCuttingRecipe(ResourceLocation id, int order, List<Requirement> requirements, ItemStack result,
-                             HiveRequirement hiveRequirement, boolean signResult) {
+                             HiveRequirement hiveRequirement, boolean signResult, boolean requiresArsenal) {
         this.id = id;
         this.order = order;
         this.requirements = List.copyOf(requirements);
         this.result = result.copy();
         this.hiveRequirement = hiveRequirement;
         this.signResult = signResult;
+        this.requiresArsenal = requiresArsenal;
     }
 
     public int order() {
@@ -62,6 +65,10 @@ public final class GemCuttingRecipe implements Recipe<Container> {
         return (requirementsMet & hiveRequirement.bit()) != 0;
     }
 
+    public boolean enabled() {
+        return !requiresArsenal || ArchiveConfig.SERVER_SPEC.isLoaded() && ArchiveConfig.ARSENAL_ENABLED.get();
+    }
+
     ItemStack resultFor(Player player) {
         ItemStack stack = getResultItem(player.level().registryAccess());
         if (signResult) {
@@ -74,7 +81,7 @@ public final class GemCuttingRecipe implements Recipe<Container> {
 
     @Override
     public boolean matches(Container input, Level level) {
-        return allocate(input.getContainerSize(), input::getItem) != null;
+        return enabled() && allocate(input.getContainerSize(), input::getItem) != null;
     }
 
     @Override
@@ -195,7 +202,7 @@ public final class GemCuttingRecipe implements Recipe<Container> {
             }
             return new GemCuttingRecipe(id, GsonHelper.getAsInt(json, "order", 0), requirements, result,
                     HiveRequirement.parse(GsonHelper.getAsString(json, "hive_requirement", "any")),
-                    GsonHelper.getAsBoolean(json, "sign_result", false));
+                    GsonHelper.getAsBoolean(json, "sign_result", false), GsonHelper.getAsBoolean(json, "arsenal", false));
         }
 
         @Override
@@ -211,7 +218,7 @@ public final class GemCuttingRecipe implements Recipe<Container> {
                 requirements.add(new Requirement(ingredient, count));
             }
             return new GemCuttingRecipe(id, order, requirements, buffer.readItem(),
-                    buffer.readEnum(HiveRequirement.class), buffer.readBoolean());
+                    buffer.readEnum(HiveRequirement.class), buffer.readBoolean(), buffer.readBoolean());
         }
 
         @Override
@@ -225,6 +232,7 @@ public final class GemCuttingRecipe implements Recipe<Container> {
             buffer.writeItem(recipe.result);
             buffer.writeEnum(recipe.hiveRequirement);
             buffer.writeBoolean(recipe.signResult);
+            buffer.writeBoolean(recipe.requiresArsenal);
         }
 
         private static void validateSize(int size) {

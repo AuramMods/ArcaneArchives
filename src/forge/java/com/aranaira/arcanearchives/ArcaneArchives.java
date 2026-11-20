@@ -1,5 +1,11 @@
 package com.aranaira.arcanearchives;
 
+import com.aranaira.arcanearchives.arsenal.ArcaneGemItem;
+import com.aranaira.arcanearchives.arsenal.ChromaticPowderItem;
+import com.aranaira.arcanearchives.arsenal.FakeAirBlock;
+import com.aranaira.arcanearchives.arsenal.GemSocketItem;
+import com.aranaira.arcanearchives.arsenal.GemSocketMenu;
+import com.aranaira.arcanearchives.arsenal.GemType;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
 import com.aranaira.arcanearchives.crafting.GemCuttersTableBlock;
 import com.aranaira.arcanearchives.crafting.GemCuttersTableBlockEntity;
@@ -72,6 +78,9 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import net.minecraft.core.registries.Registries;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 @Mod(ArcaneArchives.ID)
 public final class ArcaneArchives {
     public static final String ID = "arcanearchives";
@@ -85,6 +94,20 @@ public final class ArcaneArchives {
     private static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(Registries.RECIPE_TYPE, ID);
     private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS =
             DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, ID);
+
+    public static final Map<GemType, RegistryObject<ArcaneGemItem>> GEMS = registerGems();
+    public static final RegistryObject<GemSocketItem> GEM_SOCKET = ITEMS.register("gemsocket",
+            () -> new GemSocketItem(new Item.Properties().stacksTo(1)));
+    public static final RegistryObject<MenuType<GemSocketMenu>> GEM_SOCKET_MENU = MENUS.register("gemsocket",
+            () -> IForgeMenuType.create(GemSocketMenu::new));
+    public static final RegistryObject<ChromaticPowderItem> CHROMATIC_POWDER = ITEMS.register("chromatic_powder",
+            () -> new ChromaticPowderItem(new Item.Properties()));
+    public static final RegistryObject<Item> FULL_SPECTRUM_POWDER = ITEMS.register("full_spectrum_chromatic_powder",
+            () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> ARSENAL_CONDITION = ITEMS.register("gbook_arsenal_condition",
+            () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Block> FAKE_AIR = BLOCKS.register("fake_air", () -> new FakeAirBlock(
+            BlockBehaviour.Properties.of().noCollission().noOcclusion().noLootTable().pushReaction(PushReaction.IGNORE)));
 
     public static final RegistryObject<RadiantChestBlock> RADIANT_CHEST = BLOCKS.register("radiant_chest",
             () -> new RadiantChestBlock(BlockBehaviour.Properties.of()
@@ -272,11 +295,37 @@ public final class ArcaneArchives {
                     output.accept(DEVOURING_CHARM.get());
                     output.accept(RADIANT_KEY.get());
                     output.accept(DEBUG_ORB.get());
+                    if (ArchiveConfig.ARSENAL_ENABLED.get()) {
+                        output.accept(GEM_SOCKET.get());
+                        for (GemType gem : GemType.values()) {
+                            output.accept(GEMS.get(gem).get());
+                        }
+                        for (GemType.Color color : GemType.Color.values()) {
+                            if (color != GemType.Color.NONE) {
+                                output.accept(CHROMATIC_POWDER.get().of(color));
+                            }
+                        }
+                        output.accept(FULL_SPECTRUM_POWDER.get());
+                    }
                     output.accept(LETTER_INVITATION.get());
                     output.accept(LETTER_RESIGNATION.get());
                     output.accept(WRIT_EXPULSION.get());
                 })
                 .build());
+    }
+
+    private static Map<GemType, RegistryObject<ArcaneGemItem>> registerGems() {
+        var gems = new EnumMap<GemType, RegistryObject<ArcaneGemItem>>(GemType.class);
+        for (GemType type : GemType.values()) {
+            gems.put(type, ITEMS.register(type.id(), () -> {
+                var properties = new Item.Properties().stacksTo(1);
+                if (type == GemType.MOUNTAINTEAR) {
+                    properties.fireResistant();
+                }
+                return new ArcaneGemItem(type, properties);
+            }));
+        }
+        return Map.copyOf(gems);
     }
 
     public ArcaneArchives() {

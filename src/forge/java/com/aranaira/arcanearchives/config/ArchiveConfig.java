@@ -1,6 +1,9 @@
 package com.aranaira.arcanearchives.config;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
+
+import java.util.List;
 
 public final class ArchiveConfig {
     public static final ForgeConfigSpec SERVER_SPEC;
@@ -16,6 +19,8 @@ public final class ArchiveConfig {
     public static final ForgeConfigSpec.BooleanValue TOME_FROM_BOOKSHELF;
     public static final ForgeConfigSpec.BooleanValue TOME_FROM_RESONATOR;
     public static final ForgeConfigSpec.BooleanValue ARSENAL_ENABLED;
+    public static final ForgeConfigSpec.BooleanValue ARSENAL_COLOURBLIND;
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> MUNCHSTONE_FOODS;
     public static final ForgeConfigSpec.IntValue SLIVER_SINGLE_CHANCE;
     public static final ForgeConfigSpec.IntValue SLIVER_CLUSTER_CHANCE;
     public static final ForgeConfigSpec.IntValue SLIVER_CLUSTER_MIN;
@@ -53,6 +58,17 @@ public final class ArchiveConfig {
                 .define("tomeFromResonator", true);
         ARSENAL_ENABLED = builder.comment("Enable Arcane Gem gameplay, recipes, and the Arsenal chapter in the Tome.")
                 .define("enableArsenal", false);
+        MUNCHSTONE_FOODS = builder.comment("Edible block IDs or #tags followed by a comma and a hunger value.")
+                .defineListAllowEmpty("munchstoneFoods", List.of(
+                        "#minecraft:logs, 4", "#minecraft:leaves, 2", "minecraft:hay_block, 15", "minecraft:melon, 15",
+                        "minecraft:brown_mushroom_block, 8", "minecraft:brown_mushroom, 4", "minecraft:red_mushroom_block, 8",
+                        "minecraft:red_mushroom, 4", "minecraft:nether_wart_block, 15", "minecraft:nether_wart, 4",
+                        "minecraft:chorus_flower, 6", "minecraft:chorus_plant, 6", "minecraft:cactus, 6", "minecraft:cocoa, 4",
+                        "minecraft:dead_bush, 2", "#minecraft:tall_flowers, 2", "#minecraft:small_flowers, 2", "minecraft:pumpkin, 15",
+                        "minecraft:jack_o_lantern, 16", "minecraft:pumpkin_stem, 4", "minecraft:melon_stem, 4", "minecraft:sugar_cane, 4",
+                        "#minecraft:saplings, 2", "minecraft:grass, 1", "minecraft:tall_grass, 2", "minecraft:vine, 2",
+                        "minecraft:lily_pad, 4", "minecraft:wheat, 4", "minecraft:potatoes, 4", "minecraft:carrots, 4", "minecraft:beetroots, 4"),
+                        ArchiveConfig::validFood);
         SLIVER_SINGLE_CHANCE = builder.defineInRange("sliverSingleChance", 40, 0, 100);
         SLIVER_CLUSTER_CHANCE = builder.defineInRange("sliverClusterChance", 20, 0, 100);
         SLIVER_CLUSTER_MIN = builder.defineInRange("sliverClusterMinimum", 8, 1, 4096);
@@ -76,8 +92,29 @@ public final class ArchiveConfig {
                 .define("manifestShiftKeepsOpen", true);
         MANIFEST_RANGE = client.comment("Maximum distance at which the Manifest can track an inventory.")
                 .defineInRange("manifestRange", 100, 1, 30000);
+        ARSENAL_COLOURBLIND = client.comment("Use the Arsenal's color-accessible gem icons.").define("arsenalColourblind", false);
         CLIENT_SPEC = client.build();
     }
 
     private ArchiveConfig() {}
+
+    private static boolean validFood(Object value) {
+        if (!(value instanceof String entry)) {
+            return false;
+        }
+        int comma = entry.indexOf(',');
+        if (comma < 1) {
+            return false;
+        }
+        String block = entry.substring(0, comma).strip();
+        if (ResourceLocation.tryParse(block.startsWith("#") ? block.substring(1) : block) == null) {
+            return false;
+        }
+        try {
+            int hunger = Integer.parseInt(entry.substring(comma + 1).strip());
+            return hunger > 0 && hunger <= 20;
+        } catch (NumberFormatException exception) {
+            return false;
+        }
+    }
 }

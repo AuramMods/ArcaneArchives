@@ -1,6 +1,8 @@
 package com.aranaira.arcanearchives.storage;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.arsenal.ArsenalGems;
+import com.aranaira.arcanearchives.arsenal.GemSocketItem;
 import com.aranaira.arcanearchives.client.ArchiveClient;
 import com.aranaira.arcanearchives.crafting.GemCuttersTableMenu;
 import com.aranaira.arcanearchives.manifest.ManifestSync;
@@ -23,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ArchiveNetwork {
-    private static final String PROTOCOL = "9";
+    private static final String PROTOCOL = "10";
     private static final int MARKERS_PER_PACKET = 256;
     private static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder.named(ArcaneArchives.id("archive"))
             .networkProtocolVersion(() -> PROTOCOL)
@@ -102,11 +104,31 @@ public final class ArchiveNetwork {
                 .consumerMainThread((packet, context) -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
                         () -> () -> ArchiveClient.receiveMarkers(packet)))
                 .add();
+        CHANNEL.messageBuilder(ArsenalControl.class, 9, NetworkDirection.PLAY_TO_SERVER)
+                .encoder((packet, buffer) -> buffer.writeBoolean(packet.openSocket()))
+                .decoder(buffer -> new ArsenalControl(buffer.readBoolean()))
+                .consumerMainThread((packet, context) -> {
+                    ServerPlayer player = context.get().getSender();
+                    if (player == null || player.containerMenu != player.inventoryMenu) {
+                        return;
+                    }
+                    if (packet.openSocket()) {
+                        GemSocketItem.openAvailable(player);
+                    } else {
+                        ArsenalGems.toggleHeld(player);
+                    }
+                }).add();
     }
 
     public static void sendAmphoraToggle() {
         CHANNEL.sendToServer(new ToggleAmphora());
     }
+
+    public static void sendArsenalControl(boolean openSocket) {
+        CHANNEL.sendToServer(new ArsenalControl(openSocket));
+    }
+
+    private record ArsenalControl(boolean openSocket) {}
 
     private record ToggleAmphora() {}
 

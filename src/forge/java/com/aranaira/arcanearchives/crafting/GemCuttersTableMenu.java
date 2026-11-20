@@ -86,7 +86,7 @@ public final class GemCuttersTableMenu extends AbstractContainerMenu {
 
     public List<GemCuttingRecipe> recipes() {
         List<GemCuttingRecipe> updated = inventory.player.level().getRecipeManager()
-                .getAllRecipesFor(ArcaneArchives.GEM_CUTTING_TYPE.get());
+                .getAllRecipesFor(ArcaneArchives.GEM_CUTTING_TYPE.get()).stream().filter(GemCuttingRecipe::enabled).toList();
         if (!loadedRecipes.equals(updated)) {
             loadedRecipes = updated;
             recipes = updated.stream().sorted(Comparator.comparingInt(GemCuttingRecipe::order)
@@ -100,7 +100,7 @@ public final class GemCuttersTableMenu extends AbstractContainerMenu {
     }
 
     public boolean canCraft(GemCuttingRecipe recipe) {
-        return recipe.allowedInHive(hiveRequirementsMet.get()) && allocation(recipe) != null;
+        return recipe.enabled() && recipe.allowedInHive(hiveRequirementsMet.get()) && allocation(recipe) != null;
     }
 
     @Override
@@ -210,7 +210,7 @@ public final class GemCuttersTableMenu extends AbstractContainerMenu {
         if (!(player.level().getRecipeManager().byKey(table.selectedRecipe()).orElse(null) instanceof GemCuttingRecipe recipe)) {
             return ItemStack.EMPTY;
         }
-        if (!recipe.allowedInHive(GemCuttingRecipe.requirementsMet(player))) {
+        if (!recipe.enabled() || !recipe.allowedInHive(GemCuttingRecipe.requirementsMet(player))) {
             return ItemStack.EMPTY;
         }
         int[] counts = allocation(recipe);

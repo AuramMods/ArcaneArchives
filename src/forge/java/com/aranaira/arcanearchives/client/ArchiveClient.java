@@ -1,6 +1,8 @@
 package com.aranaira.arcanearchives.client;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.arsenal.ArcaneGemItem;
+import com.aranaira.arcanearchives.config.ArchiveConfig;
 import com.aranaira.arcanearchives.storage.ArchiveNetwork;
 import com.aranaira.arcanearchives.storage.RadiantAmphoraItem;
 import com.aranaira.arcanearchives.storage.RadiantChestMenu;
@@ -24,6 +26,7 @@ public final class ArchiveClient {
     @SubscribeEvent
     public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
         event.register(ManifestClient.KEY);
+        event.register(ArsenalClient.SOCKET);
     }
 
     @SubscribeEvent
@@ -37,6 +40,7 @@ public final class ArchiveClient {
                             ? (RadiantAmphoraItem.drainMode(stack) ? 2.0F : 1.0F) : 0.0F);
             MenuScreens.register(ArcaneArchives.MANIFEST_MENU.get(), ManifestScreen::new);
             ManifestClient.registerListeners();
+            ArsenalClient.setup();
             MenuScreens.register(ArcaneArchives.BRAZIER_SETTINGS_MENU.get(), BrazierSettingsScreen::new);
             MenuScreens.register(ArcaneArchives.STORAGE_UPGRADES_MENU.get(), StorageUpgradesScreen::new);
             MenuScreens.register(ArcaneArchives.DEVOURING_CHARM_MENU.get(), DevouringCharmScreen::new);
@@ -47,8 +51,14 @@ public final class ArchiveClient {
     }
 
     private static void onLeftClickEmpty(PlayerInteractEvent.LeftClickEmpty event) {
-        if (Minecraft.getInstance().getConnection() != null && event.getEntity().getMainHandItem().is(ArcaneArchives.RADIANT_AMPHORA.get())) {
+        if (Minecraft.getInstance().getConnection() == null) {
+            return;
+        }
+        var item = event.getEntity().getMainHandItem();
+        if (item.is(ArcaneArchives.RADIANT_AMPHORA.get())) {
             ArchiveNetwork.sendAmphoraToggle();
+        } else if (ArchiveConfig.ARSENAL_ENABLED.get() && item.getItem() instanceof ArcaneGemItem gem && gem.type().toggle) {
+            ArchiveNetwork.sendArsenalControl(false);
         }
     }
 

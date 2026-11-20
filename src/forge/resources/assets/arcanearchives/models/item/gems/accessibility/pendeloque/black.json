@@ -1,0 +1,7 @@
+{
+    "parent": "arcanearchives:item/gems/arcane_gem",
+    "textures": {
+        "layer0": "arcanearchives:item/gems/pendeloque/black",
+        "layer1": "arcanearchives:item/gems/accessibility/black"
+    }
+}
