@@ -25,7 +25,11 @@ public final class RadiantTankRenderer implements BlockEntityRenderer<RadiantTan
     @Override
     public void render(RadiantTankBlockEntity tank, float tick, PoseStack pose, MultiBufferSource buffers,
                        int light, int overlay) {
-        FluidStack fluid = tank.tank().getFluid();
+        renderFluid(tank.tank().getFluid(), tank.tank().getCapacity(), pose, buffers, light, overlay);
+    }
+
+    static void renderFluid(FluidStack fluid, int capacity, PoseStack pose, MultiBufferSource buffers,
+                            int light, int overlay) {
         if (fluid.isEmpty()) {
             return;
         }
@@ -36,7 +40,7 @@ public final class RadiantTankRenderer implements BlockEntityRenderer<RadiantTan
         }
         TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(texture);
         int tint = extensions.getTintColor(fluid);
-        float height = Math.min(1.0F, (float) fluid.getAmount() / tank.tank().getCapacity()) * 0.89F;
+        float height = Math.min(1.0F, (float) fluid.getAmount() / capacity) * 0.89F;
         float top = FLOOR + height;
         VertexConsumer vertices = buffers.getBuffer(RenderType.entityTranslucentCull(TextureAtlas.LOCATION_BLOCKS));
         PoseStack.Pose matrix = pose.last();

@@ -1,5 +1,5 @@
 {
-  "parent": "arcanearchives:block/radiant_tank",
+  "parent": "builtin/entity",
   "display": {
     "firstperson_righthand": {
       "rotation": [
