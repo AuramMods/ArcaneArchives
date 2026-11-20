@@ -17,6 +17,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -39,7 +40,7 @@ public final class ManifestItem extends Item {
     }
 
     static void open(ServerPlayer player, ContainerLevelAccess access) {
-        player.openMenu(new SimpleMenuProvider((id, inventory, ignored) -> new ManifestMenu(id, inventory, access),
+        NetworkHooks.openScreen(player, new SimpleMenuProvider((id, inventory, ignored) -> new ManifestMenu(id, inventory, access),
                 Component.translatable("item.arcanearchives.manifest")));
     }
 
