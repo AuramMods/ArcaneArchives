@@ -52,6 +52,14 @@ repositories {
         content {
             includeGroup 'mezz.jei'
             includeGroup 'com.blamejared.crafttweaker'
+            includeGroup 'vazkii.botania'
+        }
+    }
+    maven {
+        url = 'https://www.cursemaven.com/'
+        content {
+            includeModule 'curse.maven', 'jade-324717'
+            includeModule 'curse.maven', 'the-one-probe-245211'
         }
     }
 }
@@ -62,6 +70,11 @@ dependencies {
     compileOnly fg.deobf('mezz.jei:jei-1.20.1-common-api:15.20.0.129')
     compileOnly fg.deobf('mezz.jei:jei-1.20.1-forge-api:15.20.0.129')
     compileOnly fg.deobf('com.blamejared.crafttweaker:CraftTweaker-forge-1.20.1:14.0.61') {
+        transitive = false
+    }
+    compileOnly fg.deobf('curse.maven:jade-324717:6855440')
+    compileOnly fg.deobf('curse.maven:the-one-probe-245211:9523565')
+    compileOnly fg.deobf('vazkii.botania:Botania:1.20.1-456-FORGE:api') {
         transitive = false
     }
 }

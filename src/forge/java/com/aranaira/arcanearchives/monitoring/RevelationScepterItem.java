@@ -101,16 +101,8 @@ public final class RevelationScepterItem extends Item {
                     message("radiant_trove.count", inventory.count(), inventory.getSlotLimit(0)));
         }
         if (device instanceof RadiantResonatorBlockEntity resonator) {
-            var status = resonator.growthStatus();
-            var color = switch (status) {
-                case HARVESTABLE -> ChatFormatting.GOLD;
-                case OBSTRUCTED -> ChatFormatting.RED;
-                case RESONATING -> ChatFormatting.GREEN;
-                case OFFLINE -> ChatFormatting.DARK_RED;
-            };
             return List.of(message("radiant_resonator.progress", resonator.percentGrown()),
-                    message("radiant_resonator.status",
-                            Component.translatable("arcanearchives.data.tooltip.resonator_status." + status.key()).withStyle(color)));
+                    message("radiant_resonator.status", resonator.growthStatus().label()));
         }
         if (device instanceof MonitoringCrystalBlockEntity crystal) {
             return List.of(message("monitoring_crystal.facing", crystal.targetDirection().getName()));

@@ -60,7 +60,7 @@ public final class ResonatorLoopSound extends AbstractTickableSoundInstance {
     }
 
     private static boolean audible(Minecraft client) {
-        return ArchiveConfig.RESONATOR_LOOP_ENABLED.get() && ArchiveConfig.RESONATOR_LOOP_VOLUME.get() > 0
+        return ArchiveConfig.MACHINE_SOUNDS.get() && ArchiveConfig.RESONATOR_LOOP_ENABLED.get() && ArchiveConfig.RESONATOR_LOOP_VOLUME.get() > 0
                 && client.options.getSoundSourceVolume(SoundSource.MASTER) > 0
                 && client.options.getSoundSourceVolume(SoundSource.BLOCKS) > 0;
     }

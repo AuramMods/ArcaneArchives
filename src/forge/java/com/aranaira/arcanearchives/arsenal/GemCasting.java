@@ -2,6 +2,7 @@ package com.aranaira.arcanearchives.arsenal;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
+import com.aranaira.arcanearchives.integration.botania.BotaniaRivertear;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -35,6 +36,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.BlockSnapshot;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.fml.ModList;
 import org.joml.Vector3f;
 
 import java.util.List;
@@ -142,6 +144,10 @@ final class GemCasting {
         }
         if (type == GemType.PARCHTEAR) {
             parch(player, gem, hit);
+            return;
+        }
+        if (type == GemType.RIVERTEAR && ModList.get().isLoaded("botania")
+                && BotaniaRivertear.isApothecary(level.getBlockEntity(hit.getBlockPos()))) {
             return;
         }
         BlockPos target = hit.getBlockPos().relative(hit.getDirection());

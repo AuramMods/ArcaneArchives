@@ -250,7 +250,7 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
     }
 
     private void playAbsorptionSound() {
-        if (level instanceof ServerLevel serverLevel && ArchiveConfig.BRAZIER_SOUND.get()) {
+        if (level instanceof ServerLevel serverLevel && ArchiveConfig.MACHINE_SOUNDS.get() && ArchiveConfig.BRAZIER_SOUND.get()) {
             long now = serverLevel.getGameTime();
             if (now - lastSound >= 6) {
                 lastSound = now;

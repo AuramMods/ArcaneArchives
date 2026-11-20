@@ -221,6 +221,11 @@ public final class ManifestClient {
         }
         var screen = event.getContainerScreen();
         inspectedScreen = screen;
+        if (!screen.getClass().getPackageName().equals(ManifestClient.class.getPackageName())
+                && (!ArchiveConfig.MANIFEST_HIGHLIGHT_OTHER.get()
+                        || ArchiveConfig.MANIFEST_HIGHLIGHT_EXCLUDED.get().contains(screen.getClass().getName()))) {
+            return;
+        }
         for (Slot slot : screen.getMenu().slots) {
             if (!(slot.container instanceof net.minecraft.world.entity.player.Inventory)
                     && slot.isActive() && slot.hasItem() && inspected.stream()

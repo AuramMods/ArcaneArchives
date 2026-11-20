@@ -1,6 +1,8 @@
 package com.aranaira.arcanearchives.arsenal;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.config.ArchiveConfig;
+import com.aranaira.arcanearchives.integration.botania.BotaniaRivertear;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -29,6 +31,7 @@ import net.minecraftforge.event.entity.player.PlayerXpEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.Map;
@@ -40,6 +43,15 @@ public final class ArsenalEvents {
     private static final Map<LivingEntity, LootingBonus> DEATH_LOOTING = new WeakHashMap<>();
 
     private ArsenalEvents() {}
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onApothecaryUse(PlayerInteractEvent.RightClickBlock event) {
+        if (event.getEntity() instanceof ServerPlayer player && !player.isSpectator() && event.getUseBlock() != Event.Result.DENY
+                && ArchiveConfig.ARSENAL_ENABLED.get() && ModList.get().isLoaded("botania")
+                && player.mayInteract(player.serverLevel(), event.getPos())) {
+            BotaniaRivertear.fill(player, event.getPos());
+        }
+    }
 
     @SubscribeEvent
     public static void onLooting(LootingLevelEvent event) {

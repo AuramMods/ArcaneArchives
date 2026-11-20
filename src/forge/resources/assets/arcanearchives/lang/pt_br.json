@@ -1,4 +1,9 @@
 {
+  "arcanearchives.data.tooltip.chest_label": "Nome: %s",
+  "arcanearchives.data.tooltip.trove_stored": "%s de: %s",
+  "arcanearchives.data.tooltip.trove_empty": "Vazio.",
+  "arcanearchives.data.tooltip.resonator_percentage": "Progresso: %s%%",
+  "config.jade.plugin_arcanearchives.device_inspection": "Inspeção de dispositivos",
   "gui.arcanearchives.manifest.jei_sync": "Sincronizar com o JEI. Clique no campo de busca com Shift para copiar o filtro do JEI.",
   "gui.arcanearchives.jei.resonator_time": "Crescimento com o dono online: %s s",
   "﻿itemGroup.arcanearchives": "Arquivos Arcanos",

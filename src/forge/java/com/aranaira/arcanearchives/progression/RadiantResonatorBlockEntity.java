@@ -4,8 +4,10 @@ import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.client.ResonatorLoopSound;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
 import com.aranaira.arcanearchives.network.ArchiveDeviceBlockEntity;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
@@ -49,7 +51,7 @@ public final class RadiantResonatorBlockEntity extends ArchiveDeviceBlockEntity 
         if (++growth >= ArchiveConfig.RESONATOR_TICKS.get()
                 && level.setBlock(above, ArcaneArchives.RAW_QUARTZ_CLUSTER.get().defaultBlockState(), Block.UPDATE_ALL)) {
             growth = 0;
-            if (ArchiveConfig.RESONATOR_COMPLETION_SOUND.get()) {
+            if (ArchiveConfig.MACHINE_SOUNDS.get() && ArchiveConfig.RESONATOR_COMPLETION_SOUND.get()) {
                 level.playSound(null, worldPosition, ArcaneArchives.RESONATOR_COMPLETE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             }
             for (Ocelot ocelot : level.getEntitiesOfClass(Ocelot.class, new AABB(above).inflate(0.4))) {
@@ -122,16 +124,19 @@ public final class RadiantResonatorBlockEntity extends ArchiveDeviceBlockEntity 
     }
 
     public enum GrowthStatus {
-        HARVESTABLE("harvestable"), OBSTRUCTED("obstruction"), RESONATING("resonating"), OFFLINE("offline");
+        HARVESTABLE("harvestable", ChatFormatting.GOLD), OBSTRUCTED("obstruction", ChatFormatting.RED),
+        RESONATING("resonating", ChatFormatting.GREEN), OFFLINE("offline", ChatFormatting.DARK_RED);
 
         private final String key;
+        private final ChatFormatting color;
 
-        GrowthStatus(String key) {
+        GrowthStatus(String key, ChatFormatting color) {
             this.key = key;
+            this.color = color;
         }
 
-        public String key() {
-            return key;
+        public Component label() {
+            return Component.translatable("arcanearchives.data.tooltip.resonator_status." + key).withStyle(color);
         }
     }
 }

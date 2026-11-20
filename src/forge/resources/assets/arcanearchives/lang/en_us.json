@@ -1,4 +1,9 @@
 {
+  "arcanearchives.data.tooltip.chest_label": "Name: %s",
+  "arcanearchives.data.tooltip.trove_stored": "%s of: %s",
+  "arcanearchives.data.tooltip.trove_empty": "Empty.",
+  "arcanearchives.data.tooltip.resonator_percentage": "Progress: %s%%",
+  "config.jade.plugin_arcanearchives.device_inspection": "Device inspection",
   "gui.arcanearchives.manifest.jei_sync": "Synchronize with JEI. Shift-click the search box to copy the JEI filter.",
   "gui.arcanearchives.jei.resonator_time": "Growth with owner online: %s s",
   "block.arcanearchives.radiant_chest": "Radiant Chest",

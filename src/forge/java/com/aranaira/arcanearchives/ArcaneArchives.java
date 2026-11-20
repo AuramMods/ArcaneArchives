@@ -14,6 +14,7 @@ import com.aranaira.arcanearchives.crafting.GemCuttingRecipe;
 import com.aranaira.arcanearchives.crafting.RadiantCraftingTableBlock;
 import com.aranaira.arcanearchives.crafting.RadiantCraftingTableBlockEntity;
 import com.aranaira.arcanearchives.crafting.RadiantCraftingTableMenu;
+import com.aranaira.arcanearchives.integration.inspection.ArchiveProbe;
 import com.aranaira.arcanearchives.manifest.ManifestItem;
 import com.aranaira.arcanearchives.manifest.ManifestLecternBlock;
 import com.aranaira.arcanearchives.manifest.ManifestMenu;
@@ -69,10 +70,12 @@ import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -339,6 +342,7 @@ public final class ArcaneArchives {
         RECIPE_TYPES.register(modBus);
         RECIPE_SERIALIZERS.register(modBus);
         modBus.addListener(ArcaneArchives::commonSetup);
+        modBus.addListener(ArcaneArchives::enqueueIntegrations);
         MinecraftForge.EVENT_BUS.addListener(RadiantAmphoraItem::onLeftClickBlock);
         MinecraftForge.EVENT_BUS.addListener(DebugOrbItem::onLeftClickBlock);
         MinecraftForge.EVENT_BUS.addListener(ArchiveCommands::register);
@@ -355,6 +359,12 @@ public final class ArcaneArchives {
 
     private static void commonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(RadiantAmphoraItem::registerDispenser);
+    }
+
+    private static void enqueueIntegrations(InterModEnqueueEvent event) {
+        if (ModList.get().isLoaded("theoneprobe")) {
+            ArchiveProbe.register();
+        }
     }
 
     private static RegistryObject<Block> quartzStorageBlock(String id) {

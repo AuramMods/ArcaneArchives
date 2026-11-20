@@ -2,13 +2,5 @@
     "parent": "arcanearchives:item/gems/arcane_gem",
     "textures": {
         "layer0": "arcanearchives:item/gems/pampel/dun"
-    },
-    "overrides": [
-        {
-            "predicate": {
-                "arcanearchives:colourblind": 1.0
-            },
-            "model": "arcanearchives:item/gems/accessibility/pampel/dun"
-        }
-    ]
+    }
 }
