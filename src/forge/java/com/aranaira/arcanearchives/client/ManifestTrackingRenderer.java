@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.debug.DebugRenderer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
@@ -29,7 +30,11 @@ final class ManifestTrackingRenderer extends RenderType {
     }
 
     static void render(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES || ManifestClient.locations().isEmpty()) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
+            return;
+        }
+        var locations = ManifestClient.locations();
+        if (locations.isEmpty()) {
             return;
         }
         Minecraft client = Minecraft.getInstance();
@@ -47,7 +52,7 @@ final class ManifestTrackingRenderer extends RenderType {
         var pose = event.getPoseStack().last();
         float hue = (client.level.getGameTime() % 120) / 120.0F;
         int color = Mth.hsvToRgb(hue, 0.48F, 1.0F);
-        for (var location : ManifestClient.locations()) {
+        for (var location : locations) {
             if (!location.dimension().equals(client.level.dimension())) {
                 continue;
             }
@@ -57,6 +62,20 @@ final class ManifestTrackingRenderer extends RenderType {
             vertex(vertices, pose, target, normal, color);
         }
         buffers.endBatch(RAYS);
+
+        boolean drewWeight = false;
+        for (var location : locations) {
+            int priority = ManifestClient.diagnosticPriority(location);
+            var pos = location.pos();
+            if (priority >= 0 && location.dimension().equals(client.level.dimension()) && pos.distToCenterSqr(camera) < 4096) {
+                DebugRenderer.renderFloatingText(event.getPoseStack(), buffers, Integer.toString(priority),
+                        pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5, 0xFFF3C985, 0.025F, true, 0, true);
+                drewWeight = true;
+            }
+        }
+        if (drewWeight) {
+            buffers.endBatch();
+        }
     }
 
     private static void vertex(VertexConsumer vertices, PoseStack.Pose pose, Vec3 pos, Vec3 normal, int color) {

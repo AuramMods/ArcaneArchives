@@ -11,6 +11,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -38,12 +39,13 @@ import java.util.UUID;
 
 public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
     private static final String REJECTED = "arcanearchives:brazier_rejected";
+    private static final int DEFAULT_RADIUS = 150;
 
     private final ItemIngress itemIngress = new ItemIngress();
     private final FluidIngress fluidIngress = new FluidIngress();
     private LazyOptional<IItemHandler> items = LazyOptional.of(() -> itemIngress);
     private LazyOptional<IFluidHandler> fluids = LazyOptional.of(() -> fluidIngress);
-    private int radius = 150;
+    private int radius = DEFAULT_RADIUS;
     private boolean personalOnly;
     private long lastSound = -6;
     private long lastDeposit = -6;
@@ -84,26 +86,8 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
         if (stack.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        List<ItemTarget> targets = new ArrayList<>();
-        for (ArchiveDeviceBlockEntity device : nearbyDevices()) {
-            if (device instanceof GemCuttersTableBlockEntity table) {
-                targets.add(new ItemTarget(5000, table::acceptExisting));
-            } else if (device instanceof RadiantTroveBlockEntity trove
-                    && ItemStack.isSameItemSameTags(trove.inventory().reference(), stack)) {
-                targets.add(new ItemTarget(4500, (incoming, test) ->
-                        ItemHandlerHelper.insertItemStacked(trove.inventory(), incoming, test)));
-            } else if (device instanceof RadiantChestBlockEntity chest) {
-                int priority = chestPriority(chest, stack);
-                if (priority >= 0) {
-                    targets.add(new ItemTarget(priority, (incoming, test) ->
-                            ItemHandlerHelper.insertItemStacked(chest.inventory(), incoming, test)));
-                }
-            }
-        }
-        targets.sort(Comparator.comparingInt(ItemTarget::priority).reversed());
-
         ItemStack remaining = stack;
-        for (ItemTarget target : targets) {
+        for (ItemTarget target : itemTargets(nearbyDevices(), stack)) {
             remaining = target.insert().apply(remaining, simulate);
             if (remaining.isEmpty()) {
                 break;
@@ -113,6 +97,38 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
             playAbsorptionSound();
         }
         return remaining;
+    }
+
+    public static List<RoutingWeight> trace(ServerPlayer player, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return List.of();
+        }
+        return itemTargets(nearbyDevices(player.serverLevel(), player.getUUID(), player.blockPosition(), DEFAULT_RADIUS, false), stack)
+                .stream().filter(target -> target.insert().apply(stack, true).getCount() < stack.getCount())
+                .map(target -> new RoutingWeight(target.device(), target.priority())).toList();
+    }
+
+    public record RoutingWeight(ArchiveDeviceBlockEntity device, int priority) {}
+
+    private static List<ItemTarget> itemTargets(List<ArchiveDeviceBlockEntity> devices, ItemStack stack) {
+        List<ItemTarget> targets = new ArrayList<>();
+        for (ArchiveDeviceBlockEntity device : devices) {
+            if (device instanceof GemCuttersTableBlockEntity table) {
+                targets.add(new ItemTarget(table, 5000, table::acceptExisting));
+            } else if (device instanceof RadiantTroveBlockEntity trove
+                    && ItemStack.isSameItemSameTags(trove.inventory().reference(), stack)) {
+                targets.add(new ItemTarget(trove, 4500, (incoming, test) ->
+                        ItemHandlerHelper.insertItemStacked(trove.inventory(), incoming, test)));
+            } else if (device instanceof RadiantChestBlockEntity chest) {
+                int priority = chestPriority(chest, stack);
+                if (priority >= 0) {
+                    targets.add(new ItemTarget(chest, priority, (incoming, test) ->
+                            ItemHandlerHelper.insertItemStacked(chest.inventory(), incoming, test)));
+                }
+            }
+        }
+        targets.sort(Comparator.comparingInt(ItemTarget::priority).reversed());
+        return targets;
     }
 
     private static int chestPriority(RadiantChestBlockEntity chest, ItemStack stack) {
@@ -144,15 +160,20 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
         if (!(level instanceof ServerLevel serverLevel) || owner() == null) {
             return List.of();
         }
+        return nearbyDevices(serverLevel, owner(), worldPosition, radius, personalOnly);
+    }
+
+    private static List<ArchiveDeviceBlockEntity> nearbyDevices(ServerLevel level, UUID owner, BlockPos position,
+                                                                int radius, boolean personalOnly) {
         int rangeSquared = radius * radius;
-        return ArchiveNetworks.get(serverLevel.getServer()).loadedDevices(serverLevel.getServer(), owner(), personalOnly)
-                .stream().filter(device -> device.getLevel() == level && horizontalDistanceSquared(device.getBlockPos()) <= rangeSquared)
+        return ArchiveNetworks.get(level.getServer()).loadedDevices(level.getServer(), owner, personalOnly)
+                .stream().filter(device -> device.getLevel() == level && horizontalDistanceSquared(position, device.getBlockPos()) <= rangeSquared)
                 .toList();
     }
 
-    private long horizontalDistanceSquared(BlockPos pos) {
-        long dx = (long) pos.getX() - worldPosition.getX();
-        long dz = (long) pos.getZ() - worldPosition.getZ();
+    private static long horizontalDistanceSquared(BlockPos first, BlockPos second) {
+        long dx = (long) first.getX() - second.getX();
+        long dz = (long) first.getZ() - second.getZ();
         return dx * dx + dz * dz;
     }
 
@@ -299,7 +320,7 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
         fluids = LazyOptional.of(() -> fluidIngress);
     }
 
-    private record ItemTarget(int priority, ItemInsertion insert) {}
+    private record ItemTarget(ArchiveDeviceBlockEntity device, int priority, ItemInsertion insert) {}
 
     @FunctionalInterface
     private interface ItemInsertion {

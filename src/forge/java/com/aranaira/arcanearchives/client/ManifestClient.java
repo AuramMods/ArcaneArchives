@@ -4,6 +4,7 @@ import com.aranaira.arcanearchives.config.ArchiveConfig;
 import com.aranaira.arcanearchives.manifest.ManifestContents;
 import com.aranaira.arcanearchives.manifest.ManifestMenu;
 import com.aranaira.arcanearchives.manifest.ManifestSync;
+import com.aranaira.arcanearchives.storage.ArchiveNetwork;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.Util;
 import net.minecraft.client.KeyMapping;
@@ -35,6 +36,7 @@ public final class ManifestClient {
             InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), "arcanearchives.gui.keygroup");
 
     private static final Map<GlobalPos, Set<ManifestContents.Variant>> TRACKED = new LinkedHashMap<>();
+    private static final Map<GlobalPos, Integer> DIAGNOSTICS = new LinkedHashMap<>();
     private static final List<ManifestContents.Row> EXACT_MATCHES = new ArrayList<>();
     private static List<ItemStack> inspected = List.of();
     private static GlobalPos inspectedLocation;
@@ -130,7 +132,17 @@ public final class ManifestClient {
 
     public static void clearTracking() {
         TRACKED.clear();
+        DIAGNOSTICS.clear();
         clearInspection();
+    }
+
+    static void receiveMarkers(ArchiveNetwork.MarkerBatch packet) {
+        if (packet.first()) {
+            DIAGNOSTICS.clear();
+        }
+        for (var marker : packet.markers()) {
+            DIAGNOSTICS.put(marker.location(), marker.priority());
+        }
     }
 
     private static void clearInspection() {
@@ -145,7 +157,16 @@ public final class ManifestClient {
     }
 
     static Set<GlobalPos> locations() {
-        return TRACKED.keySet();
+        if (DIAGNOSTICS.isEmpty()) {
+            return TRACKED.keySet();
+        }
+        var result = new LinkedHashSet<>(TRACKED.keySet());
+        result.addAll(DIAGNOSTICS.keySet());
+        return result;
+    }
+
+    static int diagnosticPriority(GlobalPos position) {
+        return DIAGNOSTICS.getOrDefault(position, -1);
     }
 
     static Range range(GlobalPos location) {
@@ -164,6 +185,7 @@ public final class ManifestClient {
         var level = event.getLevel();
         BlockPos pos = event.getPos();
         GlobalPos location = GlobalPos.of(level.dimension(), pos);
+        DIAGNOSTICS.remove(location);
         Set<ManifestContents.Variant> variants = TRACKED.remove(location);
         var state = level.getBlockState(pos);
         if (state.getBlock() instanceof ChestBlock && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE) {

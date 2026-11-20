@@ -2,6 +2,7 @@ package com.aranaira.arcanearchives.storage;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.items.IItemHandler;
 
 import java.util.function.BooleanSupplier;
@@ -91,6 +92,14 @@ public final class RadiantTroveInventory implements IItemHandler {
         if (count == 0 && !locked.getAsBoolean()) {
             reference = ItemStack.EMPTY;
         }
+    }
+
+    boolean toggleDebugContents() {
+        boolean fill = reference.isEmpty();
+        reference = fill ? new ItemStack(Items.SNOWBALL) : ItemStack.EMPTY;
+        count = fill ? getSlotLimit(0) : 0;
+        onChange.run();
+        return fill;
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.aranaira.arcanearchives.client.ArchiveClient;
 import com.aranaira.arcanearchives.crafting.GemCuttersTableMenu;
 import com.aranaira.arcanearchives.manifest.ManifestSync;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,7 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ArchiveNetwork {
-    private static final String PROTOCOL = "8";
+    private static final String PROTOCOL = "9";
+    private static final int MARKERS_PER_PACKET = 256;
     private static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder.named(ArcaneArchives.id("archive"))
             .networkProtocolVersion(() -> PROTOCOL)
             .clientAcceptedVersions(PROTOCOL::equals)
@@ -95,6 +97,11 @@ public final class ArchiveNetwork {
                     }
                 })
                 .add();
+        CHANNEL.messageBuilder(MarkerBatch.class, 8, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(MarkerBatch::write).decoder(MarkerBatch::read)
+                .consumerMainThread((packet, context) -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                        () -> () -> ArchiveClient.receiveMarkers(packet)))
+                .add();
     }
 
     public static void sendAmphoraToggle() {
@@ -114,6 +121,42 @@ public final class ArchiveNetwork {
     }
 
     private record RenameChest(int menuId, String name) {}
+
+    public static void sendMarkers(ServerPlayer player, List<DiagnosticMarker> markers) {
+        var target = PacketDistributor.PLAYER.with(() -> player);
+        if (markers.isEmpty()) {
+            CHANNEL.send(target, new MarkerBatch(true, List.of()));
+        }
+        for (int i = 0; i < markers.size(); i += MARKERS_PER_PACKET) {
+            CHANNEL.send(target, new MarkerBatch(i == 0, markers.subList(i, Math.min(markers.size(), i + MARKERS_PER_PACKET))));
+        }
+    }
+
+    public record DiagnosticMarker(GlobalPos location, int priority) {}
+
+    public record MarkerBatch(boolean first, List<DiagnosticMarker> markers) {
+        void write(FriendlyByteBuf buffer) {
+            buffer.writeBoolean(first);
+            buffer.writeVarInt(markers.size());
+            for (var marker : markers) {
+                buffer.writeGlobalPos(marker.location());
+                buffer.writeVarInt(marker.priority());
+            }
+        }
+
+        static MarkerBatch read(FriendlyByteBuf buffer) {
+            boolean first = buffer.readBoolean();
+            int size = buffer.readVarInt();
+            if (size < 0 || size > MARKERS_PER_PACKET) {
+                throw new IllegalArgumentException("Invalid device marker packet length " + size);
+            }
+            var markers = new ArrayList<DiagnosticMarker>(size);
+            for (int i = 0; i < size; i++) {
+                markers.add(new DiagnosticMarker(buffer.readGlobalPos(), buffer.readVarInt()));
+            }
+            return new MarkerBatch(first, markers);
+        }
+    }
 
     public static void selectGemRecipe(int menuId, ResourceLocation recipe) {
         CHANNEL.sendToServer(new SelectGemRecipe(menuId, recipe));

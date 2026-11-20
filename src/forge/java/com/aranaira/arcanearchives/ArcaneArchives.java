@@ -14,6 +14,7 @@ import com.aranaira.arcanearchives.manifest.ManifestMenu;
 import com.aranaira.arcanearchives.monitoring.MonitoringCrystalBlock;
 import com.aranaira.arcanearchives.monitoring.MonitoringCrystalBlockEntity;
 import com.aranaira.arcanearchives.monitoring.RevelationScepterItem;
+import com.aranaira.arcanearchives.network.ArchiveCommands;
 import com.aranaira.arcanearchives.network.HiveLetterItem;
 import com.aranaira.arcanearchives.progression.DirectionalQuartzBlock;
 import com.aranaira.arcanearchives.progression.QuartzSliverBlock;
@@ -26,6 +27,7 @@ import com.aranaira.arcanearchives.storage.BrazierBlock;
 import com.aranaira.arcanearchives.storage.BrazierBlockEntity;
 import com.aranaira.arcanearchives.storage.BrazierSettingsMenu;
 import com.aranaira.arcanearchives.storage.DevouringCharmItem;
+import com.aranaira.arcanearchives.storage.DebugOrbItem;
 import com.aranaira.arcanearchives.storage.DevouringCharmMenu;
 import com.aranaira.arcanearchives.storage.ManipulationScepterItem;
 import com.aranaira.arcanearchives.storage.RadiantAmphoraItem;
@@ -215,6 +217,8 @@ public final class ArcaneArchives {
             MENUS.register("devouring_charm", () -> IForgeMenuType.create(DevouringCharmMenu::new));
     public static final RegistryObject<Item> RADIANT_KEY = ITEMS.register("radiant_key",
             () -> new RadiantKeyItem(new Item.Properties()));
+    public static final RegistryObject<Item> DEBUG_ORB = ITEMS.register("debugorb",
+            () -> new DebugOrbItem(new Item.Properties().stacksTo(1)));
     public static final RegistryObject<Item> LETTER_INVITATION = ITEMS.register("letter_invitation",
             () -> new HiveLetterItem(new Item.Properties(), HiveLetterItem.Kind.INVITATION));
     public static final RegistryObject<Item> LETTER_RESIGNATION = ITEMS.register("letter_resignation",
@@ -267,6 +271,7 @@ public final class ArcaneArchives {
                     output.accept(SCEPTER_MANIPULATION.get());
                     output.accept(DEVOURING_CHARM.get());
                     output.accept(RADIANT_KEY.get());
+                    output.accept(DEBUG_ORB.get());
                     output.accept(LETTER_INVITATION.get());
                     output.accept(LETTER_RESIGNATION.get());
                     output.accept(WRIT_EXPULSION.get());
@@ -286,6 +291,8 @@ public final class ArcaneArchives {
         RECIPE_SERIALIZERS.register(modBus);
         modBus.addListener(ArcaneArchives::commonSetup);
         MinecraftForge.EVENT_BUS.addListener(RadiantAmphoraItem::onLeftClickBlock);
+        MinecraftForge.EVENT_BUS.addListener(DebugOrbItem::onLeftClickBlock);
+        MinecraftForge.EVENT_BUS.addListener(ArchiveCommands::register);
         MinecraftForge.EVENT_BUS.addListener(DevouringCharmItem::onItemPickup);
         MinecraftForge.EVENT_BUS.addListener(RawQuartzItem::bashOnBlock);
         MinecraftForge.EVENT_BUS.addListener(HiveLetterItem::onAnvilRepair);

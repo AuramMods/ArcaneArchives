@@ -47,22 +47,33 @@ public abstract class ArchiveDeviceBlockEntity extends BlockEntity {
         registerDevice();
     }
 
-    private void registerDevice() {
+    void registerDevice() {
         if (owner != null && level instanceof ServerLevel serverLevel) {
             if (deviceId == null) {
                 deviceId = UUID.randomUUID();
                 setChanged();
             }
             GlobalPos location = GlobalPos.of(serverLevel.dimension(), worldPosition);
-            ArchiveNetworks.get(serverLevel.getServer()).registerDevice(location, deviceId, owner,
-                    BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(getType()));
+            var networks = ArchiveNetworks.get(serverLevel.getServer());
+            networks.registerDevice(location, deviceId, owner, BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(getType()));
+            networks.deviceLoaded(location, this);
         }
     }
 
     public final void removeFromNetwork() {
         if (deviceId != null && level instanceof ServerLevel serverLevel) {
             GlobalPos location = GlobalPos.of(serverLevel.dimension(), worldPosition);
-            ArchiveNetworks.get(serverLevel.getServer()).removeDevice(location, deviceId);
+            var networks = ArchiveNetworks.get(serverLevel.getServer());
+            networks.removeDevice(location, deviceId);
+            networks.deviceUnloaded(location, this);
+        }
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        super.onChunkUnloaded();
+        if (deviceId != null && level instanceof ServerLevel serverLevel) {
+            ArchiveNetworks.get(serverLevel.getServer()).deviceUnloaded(GlobalPos.of(serverLevel.dimension(), worldPosition), this);
         }
     }
 

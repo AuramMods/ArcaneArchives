@@ -23,6 +23,7 @@ import java.util.UUID;
 
 public final class ArchiveNetworks extends SavedData {
     private final Map<GlobalPos, Device> devices = new LinkedHashMap<>();
+    private final Map<GlobalPos, ArchiveDeviceBlockEntity> loaded = new LinkedHashMap<>();
     private final Map<UUID, LinkedHashSet<UUID>> hives = new LinkedHashMap<>();
     private final Map<UUID, String> memberNames = new LinkedHashMap<>();
 
@@ -58,15 +59,60 @@ public final class ArchiveNetworks extends SavedData {
     public List<ArchiveDeviceBlockEntity> loadedDevices(MinecraftServer server, UUID player, boolean personalOnly) {
         List<ArchiveDeviceBlockEntity> loaded = new ArrayList<>();
         for (Device device : devicesOwnedBy(player, personalOnly)) {
-            ServerLevel level = server.getLevel(device.location().dimension());
-            BlockPos pos = device.location().pos();
-            if (level != null && level.hasChunkAt(pos) && level.getBlockEntity(pos) instanceof ArchiveDeviceBlockEntity entity
-                    && device.id().equals(entity.deviceId()) && device.owner().equals(entity.owner())) {
+            var entity = resolveDevice(server, device);
+            if (entity != null) {
                 loaded.add(entity);
             }
         }
         return loaded;
     }
+
+    @Nullable
+    public ArchiveDeviceBlockEntity resolveDevice(MinecraftServer server, Device device) {
+        ServerLevel level = server.getLevel(device.location().dimension());
+        BlockPos pos = device.location().pos();
+        if (level != null && level.hasChunkAt(pos) && level.getBlockEntity(pos) instanceof ArchiveDeviceBlockEntity entity
+                && !entity.isRemoved() && device.id().equals(entity.deviceId()) && device.owner().equals(entity.owner())) {
+            return entity;
+        }
+        return null;
+    }
+
+    void deviceLoaded(GlobalPos pos, ArchiveDeviceBlockEntity entity) {
+        loaded.put(pos, entity);
+    }
+
+    void deviceUnloaded(GlobalPos pos, ArchiveDeviceBlockEntity entity) {
+        loaded.remove(pos, entity);
+    }
+
+    public RebuildResult rebuildLoaded(MinecraftServer server, UUID player) {
+        Set<UUID> members = hiveParticipants(player);
+        int refreshed = 0;
+        for (var entry : List.copyOf(loaded.entrySet())) {
+            var entity = entry.getValue();
+            var level = server.getLevel(entry.getKey().dimension());
+            var pos = entry.getKey().pos();
+            if (entity.isRemoved() || level == null || !level.hasChunkAt(pos) || level.getBlockEntity(pos) != entity) {
+                loaded.remove(entry.getKey(), entity);
+            } else if (entity.owner() != null && members.contains(entity.owner())) {
+                entity.registerDevice();
+                refreshed++;
+            }
+        }
+        int before = devices.size();
+        boolean removed = devices.values().removeIf(device -> {
+            var level = server.getLevel(device.location().dimension());
+            return members.contains(device.owner()) && level != null && level.hasChunkAt(device.location().pos())
+                    && resolveDevice(server, device) == null;
+        });
+        if (removed) {
+            setDirty();
+        }
+        return new RebuildResult(refreshed, before - devices.size());
+    }
+
+    public record RebuildResult(int refreshed, int staleRemoved) {}
 
     public boolean sharesHive(UUID first, UUID second) {
         return hiveOwner(first).equals(hiveOwner(second));

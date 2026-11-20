@@ -72,4 +72,8 @@ public final class ArchiveClient {
             chest.setItem(packet.slot(), packet.stateId(), packet.stack());
         }
     }
+
+    public static void receiveMarkers(ArchiveNetwork.MarkerBatch packet) {
+        ManifestClient.receiveMarkers(packet);
+    }
 }
