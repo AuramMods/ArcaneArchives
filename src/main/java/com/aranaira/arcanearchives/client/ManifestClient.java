@@ -54,7 +54,8 @@ public final class ManifestClient {
         bus.addListener(ManifestClient::inspectInventory);
         bus.addListener(ManifestClient::renderInspectedItems);
         bus.addListener(ManifestClient::onLogout);
-        bus.addListener(ManifestTrackingRenderer::render);
+        bus.addListener(ManifestTrackingRenderer::renderWorld);
+        bus.addListener(ManifestTrackingRenderer::renderGui);
     }
 
     private static void clientTick(TickEvent.ClientTickEvent event) {
