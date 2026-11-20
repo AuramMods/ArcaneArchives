@@ -1,6 +1,8 @@
 # Forge 1.20.1 port
 
-The gameplay baseline is the shipped [0.2.0.25-mixins8 source](https://github.com/AuramMods/ArcaneArchives/tree/bb99accf48ed583e29b0efae56e28c963407b8df). The modern build uses Java 17, Forge 47.4.28, and Mojang mappings. During the port, the active sources are in src/forge and the prior sources remain available in src/main for comparison.
+The gameplay baseline is the shipped [0.2.0.25-mixins8 source](https://github.com/AuramMods/ArcaneArchives/tree/bb99accf48ed583e29b0efae56e28c963407b8df). The modern build uses Java 17, Forge 47.4.28, and Mojang mappings. The Forge 1.20.1 source and resources use the standard Gradle layout under `src/main`. The published 1.12.2 sources remain on their release branch.
+
+The release inventory covers the 16 block IDs, 50 item IDs, and 3 sound IDs recorded in the original Forge save. The legacy `arcanearchives:weight` entity only rendered temporary `/brazier` diagnostics. In 1.20.1 those markers travel in the diagnostic packet and render on the requesting player's client.
 
 ## Shipped behavior to verify
 
@@ -22,7 +24,7 @@ The Arsenal baseline includes Slaughtergleam, Murdergleam, Agegleam, Cleanseglea
 
 Run ./gradlew build with Java 17 to produce the reobfuscated jar in build/libs. Run ./gradlew runGameTestServer for the headless tests. The server configurations use disposable directories beneath run and automatically accept the server EULA. Keep client runs muted and use an isolated display.
 
-Headless GameTests exercise chest hopper insertion, capability simulation, transfers and slot packets, hive membership and device ownership, Trove interactions and portable loot, Tank buckets, fluid automation and portable loot, Brazier routing, Amphora binding, replacement and dispensing, Resonator growth, harvesting and placement limits, double-chest conversion, and Sliver of Light yields. The Gem Cutter tests cover two-block placement and drops, drawer and recipe persistence, crafting from both inventories, overlapping ingredients, shift crafting and Brazier routing. Legacy extended-count deserialization has a test fixture. Whole-world upgrade support remains unverified.
+Headless GameTests exercise chest hopper insertion, capability simulation, transfers and slot packets, hive membership and device ownership, Trove interactions and portable loot, Tank buckets, fluid automation and portable loot, Brazier routing, Amphora binding, replacement and dispensing, Resonator growth, harvesting and placement limits, double-chest conversion, and Sliver of Light yields. The Gem Cutter tests cover two-block placement and drops, drawer and recipe persistence, crafting from both inventories, overlapping ingredients, shift crafting and Brazier routing. Legacy extended-count deserialization has a test fixture.
 
 The packaged build at 137553ed ran on a dedicated Forge server and a muted client on a virtual display. The opened Chest displayed 256 items initially and 177 after a live server update. The restarted server still reported 177. The later materials checkpoint passed all 18 headless GameTests and built from a clean source snapshot.
 
@@ -73,6 +75,14 @@ The exported `816005cb` source built successfully. A muted client installed a Sa
 The crafting integrations checkpoint passed all 54 headless GameTests. A muted packaged client displayed both JEI recipe categories, transferred a Brush recipe to the Radiant Crafting Table, and returned the ingredients with Crafting Tweaks. The Manifest copied the JEI filter, mirrored a new search and restored the previous filter when closed. CraftTweaker loaded the Gem Cutter's add, replace and remove operations on dedicated server startup and resource reload.
 
 A packaged client with Jade 11.13.2 and The One Probe 10.0.5 displayed a custom Chest name, a Trove holding 12,500 Raw Iron, and a Resonator at 57% growth with its owner offline. With Botania 1.20.1-456 installed, a Rivertear in the hotbar filled an empty Petal Apothecary with water while retaining all ten charges. The same muted client tracked a Brush by hovering it in JEI and pressing the Manifest key. The block highlight and tracking line appeared over its Chest.
+
+Quark 4.0-462 supplies the Radiant Chest's filter, bulk transfers, and sorting. Quark sorts the regular slots around oversized stacks, which retain their position and count.
+
+The dedicated server kept a 256-item Chest stack and its owner, 12,500 Raw Iron in a Trove, 9,000 mB in a Tank, and a Brazier's 34-block personal routing setting through an actual chunk unload, reload, and server restart.
+
+The 0.2.1 build passed all 54 headless GameTests. The production jar loaded on a Forge 47.4.28 dedicated server and a muted Xvfb client with Arcane Archives as the only installed mod. A survival player placed a Chest, saw 256 items displayed in one slot, and shift-transferred them as four stacks of 64. The Tome home page rendered, and the Manifest located a new 177-item stack in the Chest.
+
+The legacy Astral Sorcery liquefaction recipes, Thaumcraft aspects and Crucible interaction, and Potion Core buffs depend on those mods' older APIs. Their official release lists omit Forge 1.20.1. [Astral Sorcery](https://www.curseforge.com/minecraft/mc-mods/astral-sorcery/files/all), [Thaumcraft](https://www.curseforge.com/minecraft/mc-mods/thaumcraft/files/all), [Potion Core](https://www.curseforge.com/minecraft/mc-mods/potion-core/files/all)
 
 ### Gem Cutter scripts
 

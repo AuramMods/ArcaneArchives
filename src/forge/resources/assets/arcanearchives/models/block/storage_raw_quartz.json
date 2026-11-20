@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "arcanearchives:block/block_storage_rawquartz"
-  }
-}

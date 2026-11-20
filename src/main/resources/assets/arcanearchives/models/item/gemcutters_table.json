@@ -1,3 +1,107 @@
 {
-    "parent" : "arcanearchives/gemcutters_table.obj"
+  "parent": "arcanearchives:block/gemcutters_table",
+  "display": {
+    "firstperson_righthand": {
+      "translation": [
+        1.6,
+        0.4,
+        -1.6
+      ],
+      "rotation": [
+        0,
+        -75,
+        0
+      ],
+      "scale": [
+        0.375,
+        0.375,
+        0.375
+      ]
+    },
+    "firstperson_lefthand": {
+      "translation": [
+        4.0,
+        0.4,
+        3.52
+      ],
+      "rotation": [
+        0,
+        -70,
+        0
+      ],
+      "scale": [
+        0.375,
+        0.375,
+        0.375
+      ]
+    },
+    "thirdperson_righthand": {
+      "translation": [
+        -2.8,
+        2.4,
+        0
+      ],
+      "rotation": [
+        30,
+        0,
+        0
+      ],
+      "scale": [
+        0.375,
+        0.375,
+        0.375
+      ]
+    },
+    "thirdperson_lefthand": {
+      "translation": [
+        2.8,
+        2.4,
+        0
+      ],
+      "rotation": [
+        30,
+        0,
+        0
+      ],
+      "scale": [
+        0.375,
+        0.375,
+        0.375
+      ]
+    },
+    "gui": {
+      "translation": [
+        -2.24,
+        -1.6,
+        0
+      ],
+      "rotation": [
+        20,
+        45,
+        20
+      ],
+      "scale": [
+        0.42,
+        0.42,
+        0.42
+      ]
+    },
+    "ground": {
+      "translation": [
+        -4,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.25,
+        0.25,
+        0.25
+      ]
+    }
+  }
 }

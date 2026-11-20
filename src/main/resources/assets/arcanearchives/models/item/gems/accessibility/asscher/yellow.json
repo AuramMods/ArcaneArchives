@@ -1,7 +1,7 @@
 {
     "parent": "arcanearchives:item/gems/arcane_gem",
     "textures": {
-        "layer0": "arcanearchives:items/gems/asscher/yellow",
-        "layer1": "arcanearchives:items/gems/accessibility/yellow"
+        "layer0": "arcanearchives:item/gems/asscher/yellow",
+        "layer1": "arcanearchives:item/gems/accessibility/yellow"
     }
 }

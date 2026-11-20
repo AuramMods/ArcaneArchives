@@ -1,3 +1,97 @@
 {
-    "parent" : "arcanearchives/radiant_lantern.obj"
+  "parent": "arcanearchives:block/radiant_lantern",
+  "display": {
+    "firstperson_righthand": {
+      "translation": [
+        0,
+        0.4,
+        0
+      ],
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "scale": [
+        0.375,
+        0.375,
+        0.375
+      ]
+    },
+    "firstperson_lefthand": {
+      "translation": [
+        0,
+        0.4,
+        0
+      ],
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "scale": [
+        0.375,
+        0.375,
+        0.375
+      ]
+    },
+    "thirdperson_righthand": {
+      "translation": [
+        0,
+        2.4,
+        0
+      ],
+      "rotation": [
+        90,
+        0,
+        0
+      ],
+      "scale": [
+        0.375,
+        0.375,
+        0.375
+      ]
+    },
+    "thirdperson_lefthand": {
+      "translation": [
+        0,
+        2.4,
+        0
+      ],
+      "rotation": [
+        90,
+        0,
+        0
+      ],
+      "scale": [
+        0.375,
+        0.375,
+        0.375
+      ]
+    },
+    "gui": {
+      "translation": [
+        0.32,
+        1.44,
+        0
+      ],
+      "rotation": [
+        20,
+        45,
+        20
+      ],
+      "scale": [
+        0.94,
+        0.94,
+        0.94
+      ]
+    },
+    "ground": {
+      "scale": [
+        0.375,
+        0.375,
+        0.375
+      ]
+    }
+  }
 }

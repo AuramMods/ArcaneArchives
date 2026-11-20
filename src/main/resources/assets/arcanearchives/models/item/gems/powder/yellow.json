@@ -1,6 +1,6 @@
 {
     "parent": "item/generated",
     "textures": {
-        "layer0": "arcanearchives:items/gems/powder/yellow"
+        "layer0": "arcanearchives:item/gems/powder/yellow"
     }
 }
