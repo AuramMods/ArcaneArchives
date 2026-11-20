@@ -1,6 +1,8 @@
 package com.aranaira.arcanearchives.client;
 
+import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
+import com.aranaira.arcanearchives.crafting.GemCuttersTableBlock;
 import com.aranaira.arcanearchives.integration.jei.ArchiveJeiPlugin;
 import com.aranaira.arcanearchives.manifest.ManifestContents;
 import com.aranaira.arcanearchives.manifest.ManifestMenu;
@@ -14,6 +16,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.ChestBlock;
@@ -24,6 +27,7 @@ import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.fml.ModList;
 
 import java.util.ArrayList;
@@ -37,11 +41,14 @@ public final class ManifestClient {
     public static final KeyMapping KEY = new KeyMapping("arcanearchives.gui.keybinds.manifest",
             InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), "arcanearchives.gui.keygroup");
 
-    private static final Map<GlobalPos, Set<ManifestContents.Variant>> TRACKED = new LinkedHashMap<>();
+    private static final long TRACKING_DURATION = 10_000;
+    private static final long OPEN_WINDOW = 1_500;
+    private static final Map<GlobalPos, Map<ManifestContents.Variant, Long>> TRACKED = new LinkedHashMap<>();
     private static final Map<GlobalPos, Integer> DIAGNOSTICS = new LinkedHashMap<>();
     private static final List<ManifestContents.Row> EXACT_MATCHES = new ArrayList<>();
+    private static boolean holdingManifest;
     private static List<ItemStack> inspected = List.of();
-    private static GlobalPos inspectedLocation;
+    private static List<GlobalPos> pendingInspection = List.of();
     private static Screen inspectedScreen;
     private static long inspectUntil;
 
@@ -51,7 +58,8 @@ public final class ManifestClient {
         var bus = MinecraftForge.EVENT_BUS;
         bus.addListener(ManifestClient::clientTick);
         bus.addListener(ManifestClient::screenKey);
-        bus.addListener(ManifestClient::inspectInventory);
+        bus.addListener(EventPriority.LOWEST, ManifestClient::inspectInventory);
+        bus.addListener(EventPriority.LOWEST, ManifestClient::containerOpening);
         bus.addListener(ManifestClient::renderInspectedItems);
         bus.addListener(ManifestClient::onLogout);
         bus.addListener(ManifestTrackingRenderer::renderWorld);
@@ -61,9 +69,13 @@ public final class ManifestClient {
     private static void clientTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
             Minecraft client = Minecraft.getInstance();
-            if ((inspectedScreen != null && inspectedScreen != client.screen)
-                    || (inspectedScreen == null && Util.getMillis() > inspectUntil)) {
+            long now = Util.getMillis();
+            updateTracking(client, now);
+            if (inspectedScreen != null && inspectedScreen != client.screen) {
                 clearInspection();
+            }
+            if (now >= inspectUntil) {
+                pendingInspection = List.of();
             }
             while (KEY.consumeClick()) {
                 if (client.player != null && client.screen == null) {
@@ -117,13 +129,17 @@ public final class ManifestClient {
     }
 
     static boolean track(List<ManifestContents.Row> rows, boolean enabled) {
+        long now = Util.getMillis();
+        Minecraft client = Minecraft.getInstance();
+        updateTracking(client, now);
         boolean inRange = false;
         for (var row : rows) {
             if (enabled && range(row.location()) == Range.IN_RANGE) {
-                TRACKED.computeIfAbsent(row.location(), position -> new LinkedHashSet<>()).add(row.variant());
+                TRACKED.computeIfAbsent(row.location(), position -> new LinkedHashMap<>())
+                        .put(row.variant(), now + TRACKING_DURATION);
                 inRange = true;
             } else if (!enabled) {
-                Set<ManifestContents.Variant> variants = TRACKED.get(row.location());
+                var variants = TRACKED.get(row.location());
                 if (variants != null) {
                     variants.remove(row.variant());
                     if (variants.isEmpty()) {
@@ -136,7 +152,31 @@ public final class ManifestClient {
     }
 
     static boolean tracked(ManifestContents.Row row) {
-        return TRACKED.getOrDefault(row.location(), Set.of()).contains(row.variant());
+        return TRACKED.getOrDefault(row.location(), Map.of()).containsKey(row.variant());
+    }
+
+    private static void updateTracking(Minecraft client, long now) {
+        Player player = client.player;
+        var level = client.level;
+        boolean held = player != null && (player.getMainHandItem().is(ArcaneArchives.MANIFEST.get())
+                || player.getOffhandItem().is(ArcaneArchives.MANIFEST.get()));
+        boolean putAway = holdingManifest && !held;
+        holdingManifest = held;
+        if (level == null || player == null || putAway) {
+            TRACKED.clear();
+            return;
+        }
+        TRACKED.entrySet().removeIf(entry -> {
+            var location = entry.getKey();
+            var pos = location.pos();
+            if (!location.dimension().equals(level.dimension())
+                    || (level.hasChunkAt(pos) && !level.getBlockState(pos).hasBlockEntity())) {
+                return true;
+            }
+            var variants = entry.getValue();
+            variants.values().removeIf(expiresAt -> now >= expiresAt);
+            return variants.isEmpty();
+        });
     }
 
     public static void clearTracking() {
@@ -156,13 +196,14 @@ public final class ManifestClient {
 
     private static void clearInspection() {
         inspected = List.of();
-        inspectedLocation = null;
+        pendingInspection = List.of();
         inspectedScreen = null;
     }
 
     private static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
         clearTracking();
         EXACT_MATCHES.clear();
+        holdingManifest = false;
     }
 
     static Set<GlobalPos> locations() {
@@ -188,40 +229,53 @@ public final class ManifestClient {
     }
 
     private static void inspectInventory(PlayerInteractEvent.RightClickBlock event) {
-        if (!event.getLevel().isClientSide) {
+        var level = event.getLevel();
+        if (!level.isClientSide || (TRACKED.isEmpty() && DIAGNOSTICS.isEmpty())) {
             return;
         }
-        var level = event.getLevel();
         BlockPos pos = event.getPos();
-        GlobalPos location = GlobalPos.of(level.dimension(), pos);
-        DIAGNOSTICS.remove(location);
-        Set<ManifestContents.Variant> variants = TRACKED.remove(location);
         var state = level.getBlockState(pos);
+        if (state.getBlock() instanceof GemCuttersTableBlock) {
+            pos = GemCuttersTableBlock.inventoryPosition(pos, state);
+        }
+        GlobalPos location = GlobalPos.of(level.dimension(), pos);
         if (state.getBlock() instanceof ChestBlock && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE) {
             GlobalPos connected = GlobalPos.of(level.dimension(), pos.relative(ChestBlock.getConnectedDirection(state)));
-            var other = TRACKED.remove(connected);
-            if (variants == null) {
-                variants = other;
-            } else if (other != null) {
-                variants.addAll(other);
+            pendingInspection = List.of(location, connected);
+        } else {
+            pendingInspection = List.of(location);
+        }
+        inspectUntil = Util.getMillis() + OPEN_WINDOW;
+    }
+
+    private static void containerOpening(ScreenEvent.Opening event) {
+        long now = Util.getMillis();
+        Minecraft client = Minecraft.getInstance();
+        if (!(event.getNewScreen() instanceof AbstractContainerScreen<?> screen) || screen instanceof ManifestScreen
+                || client.player == null || screen.getMenu() == client.player.inventoryMenu
+                || pendingInspection.isEmpty() || now >= inspectUntil) {
+            pendingInspection = List.of();
+            return;
+        }
+        updateTracking(client, now);
+        Set<ManifestContents.Variant> variants = new LinkedHashSet<>();
+        for (var location : pendingInspection) {
+            DIAGNOSTICS.remove(location);
+            var tracked = TRACKED.remove(location);
+            if (tracked != null) {
+                variants.addAll(tracked.keySet());
             }
         }
-        if (variants != null) {
-            inspected = variants.stream().filter(value -> !value.fluid()).map(ManifestContents.Variant::item).toList();
-            inspectedLocation = location;
-            inspectedScreen = null;
-            inspectUntil = Util.getMillis() + 1500;
-        } else if (!location.equals(inspectedLocation)) {
-            clearInspection();
-        }
+        pendingInspection = List.of();
+        inspected = variants.stream().filter(value -> !value.fluid()).map(ManifestContents.Variant::item).toList();
+        inspectedScreen = screen;
     }
 
     private static void renderInspectedItems(ContainerScreenEvent.Render.Foreground event) {
-        if (inspected.isEmpty()) {
+        var screen = event.getContainerScreen();
+        if (inspected.isEmpty() || screen != inspectedScreen) {
             return;
         }
-        var screen = event.getContainerScreen();
-        inspectedScreen = screen;
         if (!screen.getClass().getPackageName().equals(ManifestClient.class.getPackageName())
                 && (!ArchiveConfig.MANIFEST_HIGHLIGHT_OTHER.get()
                         || ArchiveConfig.MANIFEST_HIGHLIGHT_EXCLUDED.get().contains(screen.getClass().getName()))) {

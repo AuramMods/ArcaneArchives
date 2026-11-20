@@ -945,7 +945,7 @@
                 By hovering over a slot, you can get a list of each location that the item is stored at, including names of Radiant Chests. By clicking on the slot, you can track the locations of each of these items, drawing a line from your current position to the target inventories (as long as a target inventory is in the same dimension).
             </p>
             <p>
-                Activating a tracked inventory container disables the line, as does hitting the “End Tracking” button at the bottom of the Manifest’s interface.
+                A tracking line disappears after ten seconds or when you open or break the tracked container. Putting away a held Manifest or pressing “End Tracking” clears all item tracking lines.
             </p>
             <p>
                 <image src="arcanearchives:gui/guidebook/manifest_searchbar" tw="32" th="16"/> You can filter what items your Manifest displays by typing in the search bar. Right clicking the search bar clears the current term. You can also shift-click the search bar to copy your current JEI search term.

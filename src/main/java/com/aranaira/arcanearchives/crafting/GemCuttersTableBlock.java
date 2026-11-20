@@ -73,6 +73,10 @@ public final class GemCuttersTableBlock extends BaseEntityBlock {
         return pos.relative(state.getValue(FACING).getOpposite());
     }
 
+    public static BlockPos inventoryPosition(BlockPos pos, BlockState state) {
+        return state.getValue(ACCESSOR) ? partner(pos, state) : pos;
+    }
+
     private static BlockState accessor(BlockState main) {
         return main.setValue(ACCESSOR, true).setValue(FACING, main.getValue(FACING).getOpposite());
     }
@@ -118,7 +122,7 @@ public final class GemCuttersTableBlock extends BaseEntityBlock {
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
                                  BlockHitResult hit) {
-        BlockPos main = state.getValue(ACCESSOR) ? partner(pos, state) : pos;
+        BlockPos main = inventoryPosition(pos, state);
         if (level.getBlockEntity(main) instanceof GemCuttersTableBlockEntity table) {
             if (player instanceof ServerPlayer serverPlayer) {
                 NetworkHooks.openScreen(serverPlayer, table, main);
