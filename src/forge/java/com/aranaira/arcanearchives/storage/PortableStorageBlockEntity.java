@@ -26,21 +26,21 @@ abstract class PortableStorageBlockEntity extends ArchiveDeviceBlockEntity {
 
     abstract int capacityWithMultiplier(int multiplier);
 
-    void applyCapacity() {}
+    abstract void applyUpgrades();
 
     final StorageUpgrades upgrades() {
         return upgrades;
     }
 
     final void restorePortableContents(CompoundTag tag) {
-        if (tag.contains(storageKey) || tag.contains(StorageUpgrades.SIZE_TAG)) {
+        if (tag.contains(storageKey) || tag.contains(StorageUpgrades.SIZE_TAG) || tag.contains(StorageUpgrades.OPTIONAL_TAG)) {
             readStorage(tag);
             contentsChanged();
         }
     }
 
     private void upgradesChanged() {
-        applyCapacity();
+        applyUpgrades();
         contentsChanged();
     }
 
@@ -78,7 +78,7 @@ abstract class PortableStorageBlockEntity extends ArchiveDeviceBlockEntity {
 
     private void readStorage(CompoundTag tag) {
         upgrades.loadFrom(tag);
-        applyCapacity();
+        applyUpgrades();
         loadContents(tag.getCompound(storageKey));
     }
 

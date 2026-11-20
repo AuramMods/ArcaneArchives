@@ -9,6 +9,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidType;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
@@ -18,6 +19,15 @@ import javax.annotation.Nullable;
 public final class RadiantTankBlockEntity extends PortableStorageBlockEntity {
     public static final int BASE_CAPACITY = 16 * FluidType.BUCKET_VOLUME;
     private final FluidTank tank = new FluidTank(BASE_CAPACITY) {
+        @Override
+        public int fill(FluidStack offered, FluidAction action) {
+            if (getFluidAmount() >= getCapacity() && getFluid().isFluidEqual(offered)
+                    && upgrades().hasOption(ArcaneArchives.DEVOURING_CHARM.get())) {
+                return offered.getAmount();
+            }
+            return super.fill(offered, action);
+        }
+
         @Override
         protected void onContentsChanged() {
             contentsChanged();
@@ -44,7 +54,7 @@ public final class RadiantTankBlockEntity extends PortableStorageBlockEntity {
     }
 
     @Override
-    void applyCapacity() {
+    void applyUpgrades() {
         tank.setCapacity(capacityWithMultiplier(upgrades().multiplier()));
     }
 

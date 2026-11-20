@@ -1,21 +1,25 @@
 package com.aranaira.arcanearchives.storage;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.ItemStackHandler;
 
 final class StorageUpgrades extends ItemStackHandler {
     static final String SIZE_TAG = "size_upgrades";
+    static final String OPTIONAL_TAG = "optional_upgrades";
     static final int SIZE_SLOTS = 3;
+    private static final int OPTIONAL_SLOTS = 3;
     private static final int[] MULTIPLIERS = {1, 3, 6, 10};
     private final boolean tank;
     private final Runnable changed;
 
     StorageUpgrades(boolean tank, Runnable changed) {
-        super(SIZE_SLOTS);
+        super(SIZE_SLOTS + OPTIONAL_SLOTS);
         this.tank = tank;
         this.changed = changed;
     }
@@ -36,7 +40,11 @@ final class StorageUpgrades extends ItemStackHandler {
 
     @Override
     public boolean isItemValid(int slot, ItemStack stack) {
-        return stack.is(upgrade(slot)) && (slot == 0 || !getStackInSlot(slot - 1).isEmpty());
+        if (slot < SIZE_SLOTS) {
+            return stack.is(upgrade(slot)) && (slot == 0 || !getStackInSlot(slot - 1).isEmpty());
+        }
+        return (stack.is(ArcaneArchives.DEVOURING_CHARM.get()) || !tank && stack.is(ArcaneArchives.RADIANT_KEY.get()))
+                && !hasOption(stack.getItem(), slot);
     }
 
     @Override
@@ -45,7 +53,31 @@ final class StorageUpgrades extends ItemStackHandler {
     }
 
     boolean canRemove(int slot) {
-        return slot == SIZE_SLOTS - 1 || getStackInSlot(slot + 1).isEmpty();
+        return slot >= SIZE_SLOTS - 1 || getStackInSlot(slot + 1).isEmpty();
+    }
+
+    boolean hasOption(Item item) {
+        return hasOption(item, -1);
+    }
+
+    private boolean hasOption(Item item, int except) {
+        for (int slot = SIZE_SLOTS; slot < getSlots(); slot++) {
+            if (slot != except && getStackInSlot(slot).is(item)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static boolean portableHasOption(ItemStack storage, Item item) {
+        CompoundTag tag = storage.getTagElement(OPTIONAL_TAG);
+        return tag != null && readOptions(tag).stream().anyMatch(stack -> stack.is(item));
+    }
+
+    private static NonNullList<ItemStack> readOptions(CompoundTag tag) {
+        var options = NonNullList.withSize(OPTIONAL_SLOTS, ItemStack.EMPTY);
+        ContainerHelper.loadAllItems(tag, options);
+        return options;
     }
 
     int multiplier() {
@@ -87,6 +119,14 @@ final class StorageUpgrades extends ItemStackHandler {
         if (!upgrades.isEmpty()) {
             tag.put(SIZE_TAG, upgrades);
         }
+        var options = NonNullList.withSize(OPTIONAL_SLOTS, ItemStack.EMPTY);
+        for (int i = 0; i < OPTIONAL_SLOTS; i++) {
+            options.set(i, getStackInSlot(i + SIZE_SLOTS));
+        }
+        CompoundTag optional = ContainerHelper.saveAllItems(new CompoundTag(), options, false);
+        if (!optional.isEmpty()) {
+            tag.put(OPTIONAL_TAG, optional);
+        }
     }
 
     void loadFrom(CompoundTag tag) {
@@ -95,6 +135,10 @@ final class StorageUpgrades extends ItemStackHandler {
             String slot = Integer.toString(i);
             ItemStack stack = upgrades.getBoolean(slot) ? new ItemStack(upgrade(i)) : ItemStack.of(upgrades.getCompound(slot));
             stacks.set(i, stack.is(upgrade(i)) ? stack.copyWithCount(1) : ItemStack.EMPTY);
+        }
+        var options = readOptions(tag.getCompound(OPTIONAL_TAG));
+        for (int i = 0; i < OPTIONAL_SLOTS; i++) {
+            stacks.set(i + SIZE_SLOTS, options.get(i).copyWithCount(1));
         }
     }
 }

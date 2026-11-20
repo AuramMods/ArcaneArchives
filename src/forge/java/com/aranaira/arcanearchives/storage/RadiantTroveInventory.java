@@ -4,6 +4,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 
 public final class RadiantTroveInventory implements IItemHandler {
@@ -11,12 +12,16 @@ public final class RadiantTroveInventory implements IItemHandler {
 
     private final Runnable onChange;
     private final IntSupplier multiplier;
+    private final BooleanSupplier locked;
+    private final BooleanSupplier voiding;
     private ItemStack reference = ItemStack.EMPTY;
     private int count;
 
-    RadiantTroveInventory(Runnable onChange, IntSupplier multiplier) {
+    RadiantTroveInventory(Runnable onChange, IntSupplier multiplier, BooleanSupplier locked, BooleanSupplier voiding) {
         this.onChange = onChange;
         this.multiplier = multiplier;
+        this.locked = locked;
+        this.voiding = voiding;
     }
 
     public int count() {
@@ -51,7 +56,7 @@ public final class RadiantTroveInventory implements IItemHandler {
             count += accepted;
             onChange.run();
         }
-        return stack.copyWithCount(stack.getCount() - accepted);
+        return voiding.getAsBoolean() ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - accepted);
     }
 
     @Override
@@ -63,9 +68,7 @@ public final class RadiantTroveInventory implements IItemHandler {
         ItemStack result = reference.copyWithCount(extracted);
         if (!simulate) {
             count -= extracted;
-            if (count == 0) {
-                reference = ItemStack.EMPTY;
-            }
+            clearUnusedReference();
             onChange.run();
         }
         return result;
@@ -82,6 +85,12 @@ public final class RadiantTroveInventory implements IItemHandler {
     static int capacity(ItemStack reference, int multiplier) {
         long base = reference.isEmpty() ? BASE_CAPACITY : Math.max(64L, reference.getMaxStackSize()) * 512;
         return (int) Math.min(Integer.MAX_VALUE, base * multiplier);
+    }
+
+    void clearUnusedReference() {
+        if (count == 0 && !locked.getAsBoolean()) {
+            reference = ItemStack.EMPTY;
+        }
     }
 
     @Override
@@ -102,9 +111,9 @@ public final class RadiantTroveInventory implements IItemHandler {
     void load(CompoundTag tag) {
         count = Math.max(0, tag.getInt("COUNT"));
         reference = ItemStack.of(tag.getCompound("REFERENCE")).copyWithCount(1);
-        if (count == 0 || reference.isEmpty()) {
+        if (reference.isEmpty()) {
             count = 0;
-            reference = ItemStack.EMPTY;
         }
+        clearUnusedReference();
     }
 }

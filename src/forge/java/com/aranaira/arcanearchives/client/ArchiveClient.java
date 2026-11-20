@@ -39,6 +39,7 @@ public final class ArchiveClient {
             ManifestClient.registerListeners();
             MenuScreens.register(ArcaneArchives.BRAZIER_SETTINGS_MENU.get(), BrazierSettingsScreen::new);
             MenuScreens.register(ArcaneArchives.STORAGE_UPGRADES_MENU.get(), StorageUpgradesScreen::new);
+            MenuScreens.register(ArcaneArchives.DEVOURING_CHARM_MENU.get(), DevouringCharmScreen::new);
             MinecraftForge.EVENT_BUS.addListener(BrazierRangePreview::render);
             MinecraftForge.EVENT_BUS.addListener(BrazierRangePreview::logout);
             MinecraftForge.EVENT_BUS.addListener(ArchiveClient::onLeftClickEmpty);

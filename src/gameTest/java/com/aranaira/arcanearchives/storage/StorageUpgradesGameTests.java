@@ -25,6 +25,69 @@ public final class StorageUpgradesGameTests {
     private static final int FIRST_UPGRADE_SLOT = 36;
 
     @GameTest(template = "chest_fixture")
+    public static void troveOptionalUpgradesRetainLockAndVoidOverflow(GameTestHelper test) {
+        test.setBlock(POS, ArcaneArchives.RADIANT_TROVE.get());
+        var trove = (RadiantTroveBlockEntity) test.getBlockEntity(POS);
+        Player player = adjacentPlayer(test);
+        var menu = new StorageUpgradesMenu(1, player.getInventory(), trove);
+        var key = new ItemStack(ArcaneArchives.RADIANT_KEY.get());
+        var charm = new ItemStack(ArcaneArchives.DEVOURING_CHARM.get());
+        var stone = new ItemStack(Items.COBBLESTONE);
+        var gravel = new ItemStack(Items.GRAVEL);
+        test.assertTrue(!offer(menu, player, key.copy()).isEmpty() && offer(menu, player, key).isEmpty()
+                        && !offer(menu, player, charm).isEmpty(),
+                "The Trove accepts a Radiant Key and a Devouring Charm and rejects duplicate options");
+        trove.inventory().insertItem(0, stone, false);
+        trove.inventory().extractItem(0, 1, false);
+        test.assertTrue(trove.inventory().count() == 0 && !trove.inventory().isItemValid(0, gravel)
+                        && trove.inventory().isItemValid(0, stone),
+                "The Radiant Key preserves the item type after the Trove is emptied");
+
+        ItemStack portable = Block.getDrops(trove.getBlockState(), test.getLevel(), trove.getBlockPos(), trove).get(0);
+        var handler = portable.getCapability(ForgeCapabilities.ITEM_HANDLER).orElseThrow(AssertionError::new);
+        test.assertTrue(!handler.isItemValid(0, gravel) && handler.isItemValid(0, stone),
+                "Both optional upgrades and the lock type survive becoming a portable item");
+        int base = RadiantTroveInventory.BASE_CAPACITY;
+        ItemStack overflow = stone.copyWithCount(base + 8);
+        test.assertTrue(handler.insertItem(0, overflow, true).isEmpty() && handler.getStackInSlot(0).isEmpty(),
+                "Portable voiding simulates accepting matching overflow without changing contents");
+        test.assertTrue(handler.insertItem(0, overflow, false).isEmpty() && handler.getStackInSlot(0).getCount() == base
+                        && overflow.getCount() == base + 8 && handler.insertItem(0, gravel, false).getCount() == 1,
+                "The charm discards only matching overflow without changing the input stack object");
+        test.assertTrue(!menu.quickMoveStack(player, FIRST_UPGRADE_SLOT + 3).isEmpty()
+                        && trove.inventory().isItemValid(0, gravel),
+                "Removing the key from an empty Trove releases the remembered item type");
+        test.succeed();
+    }
+
+    @GameTest(template = "chest_fixture")
+    public static void tankCharmVoidsMatchingFluidWhenFull(GameTestHelper test) {
+        test.setBlock(POS, ArcaneArchives.RADIANT_TANK.get());
+        var tank = (RadiantTankBlockEntity) test.getBlockEntity(POS);
+        Player player = adjacentPlayer(test);
+        var menu = new StorageUpgradesMenu(1, player.getInventory(), tank);
+        test.assertTrue(offer(menu, player, new ItemStack(ArcaneArchives.RADIANT_KEY.get())).isEmpty()
+                        && !offer(menu, player, new ItemStack(ArcaneArchives.DEVOURING_CHARM.get())).isEmpty(),
+                "Only the Devouring Charm is active in a Tank");
+        FluidStack water = new FluidStack(Fluids.WATER, 17000);
+        FluidStack lava = new FluidStack(Fluids.LAVA, 1000);
+        test.assertTrue(tank.tank().fill(water, FluidAction.EXECUTE) == 16000
+                        && tank.tank().fill(lava, FluidAction.EXECUTE) == 0,
+                "The Tank fills to its capacity and preserves its fluid type");
+        test.assertTrue(tank.tank().fill(water, FluidAction.SIMULATE) == 17000
+                        && tank.tank().fill(water, FluidAction.EXECUTE) == 17000
+                        && tank.tank().getFluidAmount() == 16000 && water.getAmount() == 17000,
+                "A full upgraded Tank reports consuming matching overflow without changing any stored fluid");
+        ItemStack portable = Block.getDrops(tank.getBlockState(), test.getLevel(), tank.getBlockPos(), tank).get(0);
+        test.assertTrue(StorageUpgrades.portableHasOption(portable, ArcaneArchives.DEVOURING_CHARM.get()),
+                "The optional upgrade accompanies the portable Tank");
+        test.assertTrue(!menu.quickMoveStack(player, FIRST_UPGRADE_SLOT + 3).isEmpty()
+                        && tank.tank().fill(water, FluidAction.EXECUTE) == 0,
+                "Removing the charm restores normal automation behavior");
+        test.succeed();
+    }
+
+    @GameTest(template = "chest_fixture")
     public static void troveUpgradeOrderAndPortableCapability(GameTestHelper test) {
         test.setBlock(POS, ArcaneArchives.RADIANT_TROVE.get());
         var trove = (RadiantTroveBlockEntity) test.getBlockEntity(POS);

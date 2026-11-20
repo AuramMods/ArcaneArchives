@@ -1,5 +1,6 @@
 package com.aranaira.arcanearchives.storage;
 
+import com.aranaira.arcanearchives.ArcaneArchives;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
@@ -45,6 +46,9 @@ public final class RadiantTankItem extends BlockItem {
                     stored.getDisplayName(), stored.getAmount(), capacity(stack)));
         } else if (stack.getTagElement(StorageUpgrades.SIZE_TAG) != null) {
             tooltip.add(Component.translatable("tooltip.arcanearchives.radiant_tank.capacity", capacity(stack)));
+        }
+        if (StorageUpgrades.portableHasOption(stack, ArcaneArchives.DEVOURING_CHARM.get())) {
+            tooltip.add(Component.translatable("arcanearchives.tooltip.tank.voiding"));
         }
     }
 

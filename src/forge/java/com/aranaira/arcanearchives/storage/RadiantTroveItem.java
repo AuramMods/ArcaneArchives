@@ -1,5 +1,6 @@
 package com.aranaira.arcanearchives.storage;
 
+import com.aranaira.arcanearchives.ArcaneArchives;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -29,16 +30,26 @@ public final class RadiantTroveItem extends BlockItem {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
-        if (stack.getTagElement(RadiantTroveBlockEntity.STORED_ITEMS) == null && stack.getTagElement(StorageUpgrades.SIZE_TAG) == null) {
+        if (stack.getTagElement(RadiantTroveBlockEntity.STORED_ITEMS) == null && stack.getTagElement(StorageUpgrades.SIZE_TAG) == null
+                && stack.getTagElement(StorageUpgrades.OPTIONAL_TAG) == null) {
             return;
         }
         stack.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(handler -> {
-            ItemStack stored = handler.getStackInSlot(0);
-            if (!stored.isEmpty()) {
-                tooltip.add(Component.translatable("arcanearchives.tooltip.trove.items", stored.getHoverName()));
+            if (handler instanceof TroveItemHandler trove) {
+                var inventory = trove.readInventory();
+                ItemStack stored = inventory.reference();
+                if (!stored.isEmpty()) {
+                    tooltip.add(Component.translatable("arcanearchives.tooltip.trove.items", stored.getHoverName()));
+                }
+                tooltip.add(Component.translatable("arcanearchives.tooltip.trove.contains", inventory.count(), inventory.getSlotLimit(0)));
             }
-            tooltip.add(Component.translatable("arcanearchives.tooltip.trove.contains", stored.getCount(), handler.getSlotLimit(0)));
         });
+        if (StorageUpgrades.portableHasOption(stack, ArcaneArchives.RADIANT_KEY.get())) {
+            tooltip.add(Component.translatable("arcanearchives.tooltip.trove.locked"));
+        }
+        if (StorageUpgrades.portableHasOption(stack, ArcaneArchives.DEVOURING_CHARM.get())) {
+            tooltip.add(Component.translatable("arcanearchives.tooltip.trove.voiding"));
+        }
     }
 
     private static final class TroveItemHandler implements IItemHandler, ICapabilityProvider {
@@ -48,7 +59,9 @@ public final class RadiantTroveItem extends BlockItem {
 
         TroveItemHandler(ItemStack stack) {
             this.stack = stack;
-            inventory = new RadiantTroveInventory(this::writeInventory, () -> StorageUpgrades.portableMultiplier(stack.getTag()));
+            inventory = new RadiantTroveInventory(this::writeInventory, () -> StorageUpgrades.portableMultiplier(stack.getTag()),
+                    () -> StorageUpgrades.portableHasOption(stack, ArcaneArchives.RADIANT_KEY.get()),
+                    () -> StorageUpgrades.portableHasOption(stack, ArcaneArchives.DEVOURING_CHARM.get()));
         }
 
         private RadiantTroveInventory readInventory() {

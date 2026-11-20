@@ -37,6 +37,11 @@ final class StorageUpgradesScreen extends AbstractContainerScreen<StorageUpgrade
                                 .withStyle(ChatFormatting.GRAY)), mouseX, mouseY);
                 break;
             }
+            if (!menu.installed(i + 3) && isHovering(x, 44, 16, 16, mouseX, mouseY)) {
+                graphics.renderTooltip(font, Component.translatable("gui.arcanearchives.storage_upgrades."
+                        + (menu.acceptsLockUpgrade() ? "trove_options" : "tank_options")), mouseX, mouseY);
+                break;
+            }
         }
     }
 
@@ -44,6 +49,7 @@ final class StorageUpgradesScreen extends AbstractContainerScreen<StorageUpgrade
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         boolean pretty = ArchiveConfig.PRETTY_GUIS.get();
         graphics.blit(pretty ? UPGRADES : SIMPLE_UPGRADES, leftPos + 49, topPos, 0, 0, 82, 32);
+        graphics.blit(pretty ? UPGRADES : SIMPLE_UPGRADES, leftPos + 49, topPos + 36, 0, 32, 82, 32);
         graphics.blit(pretty ? INVENTORY : SIMPLE_INVENTORY, leftPos, topPos + StorageUpgradesMenu.PLAYER_TOP, 0, 0, 181, 101);
     }
 

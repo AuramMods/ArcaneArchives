@@ -13,7 +13,8 @@
               "source": "block_entity",
               "ops": [
                 { "source": "handler_item", "target": "handler_item", "op": "replace" },
-                { "source": "size_upgrades", "target": "size_upgrades", "op": "replace" }
+                { "source": "size_upgrades", "target": "size_upgrades", "op": "replace" },
+                { "source": "optional_upgrades", "target": "optional_upgrades", "op": "replace" }
               ]
             }
           ]

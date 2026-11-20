@@ -15,7 +15,7 @@ import net.minecraftforge.items.SlotItemHandler;
 import javax.annotation.Nullable;
 
 public final class StorageUpgradesMenu extends AbstractContainerMenu {
-    public static final int PLAYER_TOP = 31;
+    public static final int PLAYER_TOP = 67;
     public static final int FIRST_UPGRADE_X = 57;
     public static final int UPGRADE_SPACING = 25;
     private static final int PLAYER_SLOTS = 36;
@@ -50,7 +50,7 @@ public final class StorageUpgradesMenu extends AbstractContainerMenu {
         for (int slot = 0; slot < 9; slot++) {
             addSlot(new Slot(inventory, slot, 10 + slot * 18, PLAYER_TOP + 71));
         }
-        for (int slot = 0; slot < StorageUpgrades.SIZE_SLOTS; slot++) {
+        for (int slot = 0; slot < upgrades.getSlots(); slot++) {
             addSlot(new UpgradeSlot(slot));
         }
     }
@@ -65,6 +65,10 @@ public final class StorageUpgradesMenu extends AbstractContainerMenu {
 
     public boolean installed(int slot) {
         return !upgrades.getStackInSlot(slot).isEmpty();
+    }
+
+    public boolean acceptsLockUpgrade() {
+        return !tank;
     }
 
     @Override
@@ -101,7 +105,8 @@ public final class StorageUpgradesMenu extends AbstractContainerMenu {
 
     private final class UpgradeSlot extends SlotItemHandler {
         UpgradeSlot(int slot) {
-            super(upgrades, slot, FIRST_UPGRADE_X + slot * UPGRADE_SPACING, 8);
+            super(upgrades, slot, FIRST_UPGRADE_X + slot % StorageUpgrades.SIZE_SLOTS * UPGRADE_SPACING,
+                    slot < StorageUpgrades.SIZE_SLOTS ? 8 : 44);
         }
 
         @Override
@@ -112,6 +117,9 @@ public final class StorageUpgradesMenu extends AbstractContainerMenu {
         @Override
         public boolean mayPickup(Player player) {
             int slot = getSlotIndex();
+            if (slot >= StorageUpgrades.SIZE_SLOTS) {
+                return true;
+            }
             if (!upgrades.canRemove(slot)) {
                 return false;
             }

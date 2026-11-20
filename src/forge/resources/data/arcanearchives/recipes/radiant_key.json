@@ -1,0 +1,10 @@
+{
+  "type": "arcanearchives:gem_cutting",
+  "order": 180,
+  "ingredients": [
+    { "ingredient": { "tag": "forge:ingots/gold" }, "count": 1 },
+    { "ingredient": { "tag": "forge:nuggets/gold" }, "count": 3 },
+    { "ingredient": { "item": "arcanearchives:shaped_quartz" }, "count": 1 }
+  ],
+  "result": { "item": "arcanearchives:radiant_key", "count": 4 }
+}
