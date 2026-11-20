@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "minecraft:book" },
+    { "tag": "forge:nuggets/gold" }
+  ],
+  "result": {
+    "item": "arcanearchives:tome_arcana",
+    "nbt": { "Book": "arcanearchives:xml/tome.xml" }
+  }
+}

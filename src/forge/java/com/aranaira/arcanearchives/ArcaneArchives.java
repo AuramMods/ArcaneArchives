@@ -40,6 +40,7 @@ import com.aranaira.arcanearchives.storage.RadiantTroveBlock;
 import com.aranaira.arcanearchives.storage.RadiantTroveBlockEntity;
 import com.aranaira.arcanearchives.storage.RadiantTroveItem;
 import com.aranaira.arcanearchives.storage.StorageUpgradesMenu;
+import com.aranaira.arcanearchives.tome.TomeOfArcanaItem;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
@@ -223,6 +224,8 @@ public final class ArcaneArchives {
 
     public static final RegistryObject<Item> MANIFEST = ITEMS.register("manifest",
             () -> new ManifestItem(new Item.Properties().stacksTo(1)));
+    public static final RegistryObject<Item> TOME_OF_ARCANA = ITEMS.register("tome_arcana",
+            () -> new TomeOfArcanaItem(new Item.Properties().stacksTo(1)));
     public static final RegistryObject<ManifestLecternBlock> MANIFEST_LECTERN = BLOCKS.register("lectern_manifest",
             () -> new ManifestLecternBlock(BlockBehaviour.Properties.of().strength(1.5F).sound(SoundType.WOOD)
                     .lightLevel(state -> 15).pushReaction(PushReaction.BLOCK).noOcclusion()));
@@ -258,6 +261,7 @@ public final class ArcaneArchives {
                     output.accept(RADIANT_AMPHORA.get());
                     output.accept(MONITORING_CRYSTAL_ITEM.get());
                     output.accept(MANIFEST.get());
+                    output.accept(TomeOfArcanaItem.tome());
                     output.accept(MANIFEST_LECTERN_ITEM.get());
                     output.accept(SCEPTER_REVELATION.get());
                     output.accept(SCEPTER_MANIPULATION.get());
@@ -286,6 +290,8 @@ public final class ArcaneArchives {
         MinecraftForge.EVENT_BUS.addListener(RawQuartzItem::bashOnBlock);
         MinecraftForge.EVENT_BUS.addListener(HiveLetterItem::onAnvilRepair);
         MinecraftForge.EVENT_BUS.addListener(HiveLetterItem::onPlayerLogin);
+        MinecraftForge.EVENT_BUS.addListener(TomeOfArcanaItem::onCraft);
+        MinecraftForge.EVENT_BUS.addListener(TomeOfArcanaItem::onBlockBreak);
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ArchiveConfig.SERVER_SPEC);
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ArchiveConfig.CLIENT_SPEC);
         ArchiveNetwork.register();

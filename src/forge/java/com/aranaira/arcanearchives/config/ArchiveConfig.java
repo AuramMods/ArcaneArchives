@@ -13,6 +13,9 @@ public final class ArchiveConfig {
     public static final ForgeConfigSpec.IntValue RESONATOR_TICKS;
     public static final ForgeConfigSpec.BooleanValue RESONATOR_COMPLETION_SOUND;
     public static final ForgeConfigSpec.BooleanValue CHEST_CONVERSION;
+    public static final ForgeConfigSpec.BooleanValue TOME_FROM_BOOKSHELF;
+    public static final ForgeConfigSpec.BooleanValue TOME_FROM_RESONATOR;
+    public static final ForgeConfigSpec.BooleanValue ARSENAL_ENABLED;
     public static final ForgeConfigSpec.IntValue SLIVER_SINGLE_CHANCE;
     public static final ForgeConfigSpec.IntValue SLIVER_CLUSTER_CHANCE;
     public static final ForgeConfigSpec.IntValue SLIVER_CLUSTER_MIN;
@@ -44,6 +47,12 @@ public final class ArchiveConfig {
                 .define("resonatorCompletionSound", true);
         CHEST_CONVERSION = builder.comment("Allow crouch-use with Raw Radiant Quartz to convert a wooden chest.")
                 .define("inWorldChestConversion", true);
+        TOME_FROM_BOOKSHELF = builder.comment("Drop a Tome of Arcana the first time a player breaks a bookshelf.")
+                .define("tomeFromBookshelf", true);
+        TOME_FROM_RESONATOR = builder.comment("Drop a Tome of Arcana when a player crafts their first Radiant Resonator.")
+                .define("tomeFromResonator", true);
+        ARSENAL_ENABLED = builder.comment("Enable Arcane Gem gameplay, recipes, and the Arsenal chapter in the Tome.")
+                .define("enableArsenal", false);
         SLIVER_SINGLE_CHANCE = builder.defineInRange("sliverSingleChance", 40, 0, 100);
         SLIVER_CLUSTER_CHANCE = builder.defineInRange("sliverClusterChance", 20, 0, 100);
         SLIVER_CLUSTER_MIN = builder.defineInRange("sliverClusterMinimum", 8, 1, 4096);
