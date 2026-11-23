@@ -110,11 +110,11 @@ public final class ArchiveJeiPlugin implements IModPlugin {
     }
 
     private static List<ResonatorCategory.Growth> listGrowth() {
-        var level = Minecraft.getInstance().level;
-        if (level == null || !ArchiveConfig.SERVER_SPEC.isLoaded()) {
+        var connection = Minecraft.getInstance().getConnection();
+        if (connection == null) {
             return List.of();
         }
-        return level.getRecipeManager().getAllRecipesFor(ArcaneArchives.RESONATOR_GROWTH_TYPE.get()).stream()
+        return connection.getRecipeManager().getAllRecipesFor(ArcaneArchives.RESONATOR_GROWTH_TYPE.get()).stream()
                 .sorted(ResonatorGrowth.ORDER).map(rule -> new ResonatorCategory.Growth(rule, rule.duration())).toList();
     }
 

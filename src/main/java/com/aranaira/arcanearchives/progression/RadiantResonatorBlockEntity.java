@@ -89,7 +89,8 @@ public final class RadiantResonatorBlockEntity extends ArchiveDeviceBlockEntity 
         BlockState output = rule.settings().output();
         boolean legacyProgress = growingRule == null && rule.id().equals(ResonatorGrowth.DEFAULT);
         if (!legacyProgress && (!rule.id().equals(growingRule) || output != growingOutput
-                || duration != requiredTicks || (previousRule != null && !previousRule.equals(rule)))) {
+                || (rule.settings().ticks() != 0 && duration != requiredTicks)
+                || (previousRule != null && !previousRule.equals(rule)))) {
             growth = 0;
         }
         if (!rule.id().equals(growingRule) || output != growingOutput || duration != requiredTicks) {

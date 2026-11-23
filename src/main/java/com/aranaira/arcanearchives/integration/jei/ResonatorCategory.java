@@ -76,7 +76,11 @@ final class ResonatorCategory implements IRecipeCategory<ResonatorCategory.Growt
 
     @Override
     public void draw(Growth growth, IRecipeSlotsView slots, GuiGraphics graphics, double mouseX, double mouseY) {
-        artwork.draw(graphics, 22, 0);
+        if (growth.output().is(ArcaneArchives.RAW_QUARTZ_CLUSTER.get())) {
+            artwork.draw(graphics, 22, 0);
+        } else {
+            icon.draw(graphics, 26, 23);
+        }
         arrow.draw(graphics, 54, 23);
         String seconds = NumberFormat.getNumberInstance().format(growth.ticks() / 20.0);
         Component time = Component.translatable("gui.arcanearchives.jei.resonator_time", seconds);
@@ -85,6 +89,10 @@ final class ResonatorCategory implements IRecipeCategory<ResonatorCategory.Growt
         for (var line : font.split(time, getWidth() - 8)) {
             graphics.drawString(font, line, (getWidth() - font.width(line)) / 2, y, 0x363636, false);
             y += font.lineHeight;
+        }
+        if (growth.rule().settings().requiresOnlineOwner()) {
+            Component owner = Component.translatable("gui.arcanearchives.jei.resonator_owner");
+            graphics.drawString(font, owner, (getWidth() - font.width(owner)) / 2, y, 0x363636, false);
         }
     }
 

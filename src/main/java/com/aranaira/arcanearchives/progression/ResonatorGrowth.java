@@ -23,7 +23,7 @@ public record ResonatorGrowth(ResourceLocation id, Settings settings) implements
             .thenComparing(ResonatorGrowth::id);
 
     public static RecipeSerializer<ResonatorGrowth> serializer() {
-        return new RuleSerializer<>(Settings.CODEC, ResonatorGrowth::new, ResonatorGrowth::settings);
+        return new RuleSerializer<>(Settings.CODEC, ResonatorGrowth::new, ResonatorGrowth::settingsForClient);
     }
 
     public boolean matches(Level level, BlockPos pos) {
@@ -34,6 +34,11 @@ public record ResonatorGrowth(ResourceLocation id, Settings settings) implements
 
     public int duration() {
         return settings.ticks == 0 ? ArchiveConfig.RESONATOR_TICKS.get() : settings.ticks;
+    }
+
+    private Settings settingsForClient() {
+        return settings.ticks != 0 ? settings : new Settings(settings.order, duration(), settings.requiresOnlineOwner,
+                settings.foundation, settings.dimension, settings.minimumLight, settings.output);
     }
 
     @Override
