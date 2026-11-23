@@ -1,6 +1,7 @@
 package com.aranaira.arcanearchives.crafting;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.ContainerListener;
@@ -17,6 +18,7 @@ import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.event.ForgeEventFactory;
@@ -47,6 +49,8 @@ public final class RadiantCraftingTableMenu extends AbstractContainerMenu {
     private final DataSlot craftableBookmarks = DataSlot.standalone();
     @Nullable
     private CraftingRecipe currentRecipe;
+    private RecipeManager lastRecipeManager;
+    private boolean lastResultAllowed;
     @Nullable
     private ResourceLocation lastCrafted;
 
@@ -129,6 +133,9 @@ public final class RadiantCraftingTableMenu extends AbstractContainerMenu {
         if (index < RESULT_SLOT || index >= FIRST_BOOKMARK_SLOT) {
             return ItemStack.EMPTY;
         }
+        if (table != null && index == RESULT_SLOT) {
+            refreshResult();
+        }
         Slot slot = slots.get(index);
         ItemStack stack = slot.getItem();
         if (stack.isEmpty()) {
@@ -184,7 +191,8 @@ public final class RadiantCraftingTableMenu extends AbstractContainerMenu {
         if (saved == null) {
             refreshResult();
             CraftingRecipe toSave = alternate ? recipeById(lastCrafted) : currentRecipe;
-            if (toSave == null || toSave.getIngredients().isEmpty() || toSave.getResultItem(player.level().registryAccess()).isEmpty()) {
+            if (toSave == null || !canCraft(toSave) || toSave.getIngredients().isEmpty()
+                    || toSave.getResultItem(player.level().registryAccess()).isEmpty()) {
                 return false;
             }
             table.setBookmark(index, toSave.getId());
@@ -200,6 +208,11 @@ public final class RadiantCraftingTableMenu extends AbstractContainerMenu {
     @Override
     public void broadcastChanges() {
         if (table != null) {
+            if (lastRecipeManager != inventory.player.level().getRecipeManager()
+                    || (currentRecipe != null && (recipeById(currentRecipe.getId()) != currentRecipe
+                    || canCraft(currentRecipe) != lastResultAllowed))) {
+                refreshResult();
+            }
             refreshBookmarks();
         }
         super.broadcastChanges();
@@ -208,17 +221,27 @@ public final class RadiantCraftingTableMenu extends AbstractContainerMenu {
     private void refreshResult() {
         Player player = inventory.player;
         var level = player.level();
-        var recipes = level.getRecipeManager();
-        if (currentRecipe == null || recipeById(currentRecipe.getId()) != currentRecipe || !currentRecipe.matches(grid, level)) {
-            currentRecipe = recipes.getRecipeFor(RecipeType.CRAFTING, grid, level).orElse(null);
+        Player previous = ForgeHooks.getCraftingPlayer();
+        ForgeHooks.setCraftingPlayer(player);
+        try {
+            var recipes = level.getRecipeManager();
+            lastRecipeManager = recipes;
+            if (currentRecipe == null || recipeById(currentRecipe.getId()) != currentRecipe || !currentRecipe.matches(grid, level)) {
+                currentRecipe = recipes.getRecipeFor(RecipeType.CRAFTING, grid, level).orElse(null);
+            }
+            ItemStack output = ItemStack.EMPTY;
+            result.setRecipeUsed(null);
+            lastResultAllowed = currentRecipe != null && canCraft(currentRecipe);
+            if (lastResultAllowed) {
+                output = currentRecipe.assemble(grid, level.registryAccess());
+                if (!output.isEmpty()) {
+                    result.setRecipeUsed(currentRecipe);
+                }
+            }
+            result.setItem(0, output);
+        } finally {
+            ForgeHooks.setCraftingPlayer(previous);
         }
-        ItemStack output = ItemStack.EMPTY;
-        result.setRecipeUsed(null);
-        if (currentRecipe != null && canCraft(currentRecipe)) {
-            result.setRecipeUsed(currentRecipe);
-            output = currentRecipe.assemble(grid, level.registryAccess());
-        }
-        result.setItem(0, output);
     }
 
     private void refreshBookmarks() {
@@ -238,9 +261,10 @@ public final class RadiantCraftingTableMenu extends AbstractContainerMenu {
     }
 
     private boolean canCraft(CraftingRecipe recipe) {
-        return recipe.isSpecial() || !(inventory.player instanceof ServerPlayer serverPlayer)
+        return ArchiveStages.allowsRadiantCrafting(inventory.player, recipe)
+                && (recipe.isSpecial() || !(inventory.player instanceof ServerPlayer serverPlayer)
                 || !serverPlayer.level().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_LIMITED_CRAFTING)
-                || serverPlayer.getRecipeBook().contains(recipe);
+                || serverPlayer.getRecipeBook().contains(recipe));
     }
 
     private boolean craftBookmark(Player player, CraftingRecipe recipe) {
@@ -253,11 +277,12 @@ public final class RadiantCraftingTableMenu extends AbstractContainerMenu {
             return false;
         }
         List<ItemStack> remainders;
+        Player previous = ForgeHooks.getCraftingPlayer();
         ForgeHooks.setCraftingPlayer(player);
         try {
             remainders = recipe.getRemainingItems(craft.input());
         } finally {
-            ForgeHooks.setCraftingPlayer(null);
+            ForgeHooks.setCraftingPlayer(previous);
         }
 
         int[] consumed = craft.consumed();

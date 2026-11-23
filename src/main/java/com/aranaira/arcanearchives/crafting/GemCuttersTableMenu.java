@@ -1,6 +1,7 @@
 package com.aranaira.arcanearchives.crafting;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.SimpleContainer;
@@ -100,7 +101,8 @@ public final class GemCuttersTableMenu extends AbstractContainerMenu {
     }
 
     public boolean canCraft(GemCuttingRecipe recipe) {
-        return recipe.enabled() && recipe.allowedInHive(hiveRequirementsMet.get()) && allocation(recipe) != null;
+        return recipe.enabled() && allowedByStages(inventory.player, recipe)
+                && recipe.allowedInHive(hiveRequirementsMet.get()) && allocation(recipe) != null;
     }
 
     @Override
@@ -210,7 +212,8 @@ public final class GemCuttersTableMenu extends AbstractContainerMenu {
         if (!(player.level().getRecipeManager().byKey(table.selectedRecipe()).orElse(null) instanceof GemCuttingRecipe recipe)) {
             return ItemStack.EMPTY;
         }
-        if (!recipe.enabled() || !recipe.allowedInHive(GemCuttingRecipe.requirementsMet(player))) {
+        if (!recipe.enabled() || !allowedByStages(player, recipe)
+                || !recipe.allowedInHive(GemCuttingRecipe.requirementsMet(player))) {
             return ItemStack.EMPTY;
         }
         int[] counts = allocation(recipe);
@@ -262,6 +265,10 @@ public final class GemCuttersTableMenu extends AbstractContainerMenu {
         ForgeEventFactory.firePlayerCraftingEvent(player, result, used);
         broadcastChanges();
         return result;
+    }
+
+    private static boolean allowedByStages(Player player, GemCuttingRecipe recipe) {
+        return ArchiveStages.allowsRecipe(player.level(), player, ArchiveStages.GEM_CUTTING, recipe.getId());
     }
 
     private void returnIngredients(Player player, SimpleContainer used) {

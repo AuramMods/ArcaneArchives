@@ -1,6 +1,7 @@
 package com.aranaira.arcanearchives.crafting;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.integration.stages.StageRule;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -15,6 +16,9 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @GameTestHolder(ArcaneArchives.ID)
 @PrefixGameTestTemplate(false)
@@ -110,6 +114,41 @@ public final class RadiantCraftingTableGameTests {
                 .mapToInt(item -> item.getItem().getCount()).sum();
         test.assertTrue(quartz == 6 && tables == 1 && !menu.stillValid(player),
                 "Breaking the table should drop the grid exactly once and invalidate any open menus");
+        menu.removed(player);
+        test.succeed();
+    }
+
+    @GameTest(template = "chest_fixture")
+    public static void radiantCraftingRejectsStaleResultsAndBookmarks(GameTestHelper test) {
+        RadiantCraftingTableBlockEntity table = placeTable(test);
+        Player player = playerAtTable(test);
+        RadiantCraftingTableMenu menu = open(table, player);
+        table.grid().setItem(0, new ItemStack(Items.OAK_PLANKS, 2));
+        table.grid().setItem(3, new ItemStack(Items.OAK_PLANKS, 2));
+        test.assertTrue(menu.getSlot(0).hasItem() && menu.clickMenuButton(player, 0),
+                "The regular recipe and its saved shortcut should be available before applying a stage");
+
+        var manager = test.getLevel().getRecipeManager();
+        var previous = List.copyOf(manager.getRecipes());
+        var gated = new ArrayList<>(previous);
+        gated.add(new StageRule(StageRule.Scope.RECIPE.key(STICKS), List.of("test_access"), List.of()));
+        try {
+            manager.replaceRecipes(gated);
+            menu.broadcastChanges();
+            test.assertTrue(!menu.getSlot(0).hasItem() && !menu.canUseBookmark(0),
+                    "An open table must hide an output and disable its saved shortcut after the recipe is gated");
+            menu.clicked(0, 0, ClickType.PICKUP, player);
+            test.assertTrue(menu.getCarried().isEmpty() && menu.quickMoveStack(player, 0).isEmpty()
+                            && !menu.clickMenuButton(player, 0) && table.grid().getItem(0).getCount() == 2
+                            && table.grid().getItem(3).getCount() == 2 && count(player, Items.STICK) == 0,
+                    "A stage denial must leave both inventories untouched across result-taking paths");
+        } finally {
+            manager.replaceRecipes(previous);
+        }
+        menu.broadcastChanges();
+        test.assertTrue(menu.getSlot(0).hasItem() && menu.canUseBookmark(0) && menu.clickMenuButton(player, 0)
+                        && count(player, Items.STICK) == 4,
+                "Removing the gate restores the grid preview and the saved shortcut");
         menu.removed(player);
         test.succeed();
     }

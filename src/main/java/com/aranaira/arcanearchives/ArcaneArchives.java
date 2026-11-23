@@ -15,6 +15,7 @@ import com.aranaira.arcanearchives.crafting.RadiantCraftingTableBlock;
 import com.aranaira.arcanearchives.crafting.RadiantCraftingTableBlockEntity;
 import com.aranaira.arcanearchives.crafting.RadiantCraftingTableMenu;
 import com.aranaira.arcanearchives.integration.inspection.ArchiveProbe;
+import com.aranaira.arcanearchives.integration.stages.StageRule;
 import com.aranaira.arcanearchives.manifest.ManifestItem;
 import com.aranaira.arcanearchives.manifest.ManifestLecternBlock;
 import com.aranaira.arcanearchives.manifest.ManifestMenu;
@@ -215,6 +216,10 @@ public final class ArcaneArchives {
             RECIPE_TYPES.register("gem_cutting", () -> RecipeType.simple(id("gem_cutting")));
     public static final RegistryObject<RecipeSerializer<GemCuttingRecipe>> GEM_CUTTING_SERIALIZER =
             RECIPE_SERIALIZERS.register("gem_cutting", GemCuttingRecipe.Serializer::new);
+    public static final RegistryObject<RecipeType<StageRule>> STAGE_RULE_TYPE =
+            RECIPE_TYPES.register("stage_rule", () -> RecipeType.simple(id("stage_rule")));
+    public static final RegistryObject<RecipeSerializer<StageRule>> STAGE_RULE_SERIALIZER =
+            RECIPE_SERIALIZERS.register("stage_rule", StageRule.Serializer::new);
     public static final RegistryObject<RadiantCraftingTableBlock> RADIANT_CRAFTING_TABLE = BLOCKS.register("radiant_crafting_table",
             () -> new RadiantCraftingTableBlock(BlockBehaviour.Properties.of().strength(3.0F).sound(SoundType.GLASS)
                     .lightLevel(state -> 15).noOcclusion()));

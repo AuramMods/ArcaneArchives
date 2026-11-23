@@ -42,7 +42,7 @@ public final class GemCuttingRecipe implements Recipe<Container> {
         this(id, order, requirements, result, HiveRequirement.ANY, false, false);
     }
 
-    private GemCuttingRecipe(ResourceLocation id, int order, List<Requirement> requirements, ItemStack result,
+    public GemCuttingRecipe(ResourceLocation id, int order, List<Requirement> requirements, ItemStack result,
                              HiveRequirement hiveRequirement, boolean signResult, boolean requiresArsenal) {
         validateSize(requirements.size());
         requirements.forEach(requirement -> validateCount(requirement.count()));
@@ -64,6 +64,18 @@ public final class GemCuttingRecipe implements Recipe<Container> {
 
     public List<Requirement> requirements() {
         return requirements;
+    }
+
+    public HiveRequirement hiveRequirement() {
+        return hiveRequirement;
+    }
+
+    public boolean signsResult() {
+        return signResult;
+    }
+
+    public boolean requiresArsenal() {
+        return requiresArsenal;
     }
 
     public GemCuttingRecipe withContents(List<Requirement> requirements, ItemStack result) {
@@ -160,7 +172,7 @@ public final class GemCuttingRecipe implements Recipe<Container> {
         }
     }
 
-    private enum HiveRequirement {
+    public enum HiveRequirement {
         ANY("any"), CAN_INVITE("can_invite"), MEMBER("member"), OWNER("owner");
 
         private final String id;
