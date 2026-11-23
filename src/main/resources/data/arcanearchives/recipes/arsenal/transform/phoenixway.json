@@ -1,0 +1,9 @@
+{
+  "type": "arcanearchives:block_transform",
+  "gem": "phoenixway",
+  "target": "air",
+  "output": {
+    "Name": "minecraft:fire"
+  },
+  "dynamic_fire": true
+}

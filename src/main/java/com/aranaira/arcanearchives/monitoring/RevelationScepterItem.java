@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.monitoring;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.crafting.RadiantCraftingTableBlockEntity;
 import com.aranaira.arcanearchives.progression.RadiantResonatorBlockEntity;
@@ -35,6 +38,9 @@ public final class RevelationScepterItem extends Item {
     public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
         Level level = context.getLevel();
         Player player = context.getPlayer();
+        if (!ArchiveStages.allowsFeature(level, player, ArchiveFeature.MONITORING_INSPECT.id())) {
+            return InteractionResult.FAIL;
+        }
         if (!level.isClientSide && player != null && context.getHand() == InteractionHand.MAIN_HAND) {
             BlockPos pos = context.getClickedPos();
             BlockEntity device = level.getBlockEntity(pos);

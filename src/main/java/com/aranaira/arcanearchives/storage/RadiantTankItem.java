@@ -6,7 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.BlockItem;
+import com.aranaira.arcanearchives.integration.stages.DeviceBlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 
-public final class RadiantTankItem extends BlockItem {
+public final class RadiantTankItem extends DeviceBlockItem {
     public RadiantTankItem(Block block, Properties properties) {
         super(block, properties);
     }

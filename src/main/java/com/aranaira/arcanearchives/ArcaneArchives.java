@@ -2,12 +2,15 @@ package com.aranaira.arcanearchives;
 
 import com.aranaira.arcanearchives.arsenal.ArcaneGemItem;
 import com.aranaira.arcanearchives.arsenal.ArchiveTag;
+import com.aranaira.arcanearchives.arsenal.ArsenalEffectRule;
+import com.aranaira.arcanearchives.arsenal.BlockTransformRule;
 import com.aranaira.arcanearchives.arsenal.ChromaticPowderItem;
 import com.aranaira.arcanearchives.arsenal.FakeAirBlock;
 import com.aranaira.arcanearchives.arsenal.GemSocketItem;
 import com.aranaira.arcanearchives.arsenal.GemSocketMenu;
 import com.aranaira.arcanearchives.arsenal.GemType;
 import com.aranaira.arcanearchives.arsenal.InventoryRechargeRule;
+import com.aranaira.arcanearchives.arsenal.MunchstoneFoodRule;
 import com.aranaira.arcanearchives.arsenal.NaturalRechargeRule;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
 import com.aranaira.arcanearchives.crafting.GemCuttersTableBlock;
@@ -18,6 +21,7 @@ import com.aranaira.arcanearchives.crafting.RadiantCraftingTableBlock;
 import com.aranaira.arcanearchives.crafting.RadiantCraftingTableBlockEntity;
 import com.aranaira.arcanearchives.crafting.RadiantCraftingTableMenu;
 import com.aranaira.arcanearchives.integration.inspection.ArchiveProbe;
+import com.aranaira.arcanearchives.integration.stages.DeviceBlockItem;
 import com.aranaira.arcanearchives.integration.stages.StageRule;
 import com.aranaira.arcanearchives.manifest.ManifestItem;
 import com.aranaira.arcanearchives.manifest.ManifestLecternBlock;
@@ -123,7 +127,7 @@ public final class ArcaneArchives {
             () -> new RadiantChestBlock(BlockBehaviour.Properties.of()
                     .strength(3.0F, 6000.0F).sound(SoundType.GLASS).lightLevel(state -> 15).noOcclusion()));
     public static final RegistryObject<Item> RADIANT_CHEST_ITEM = ITEMS.register("radiant_chest",
-            () -> new BlockItem(RADIANT_CHEST.get(), new Item.Properties()));
+            () -> new DeviceBlockItem(RADIANT_CHEST.get(), new Item.Properties()));
     public static final RegistryObject<BlockEntityType<RadiantChestBlockEntity>> RADIANT_CHEST_ENTITY =
             BLOCK_ENTITIES.register("radiantchest",
                     () -> BlockEntityType.Builder.of(RadiantChestBlockEntity::new, RADIANT_CHEST.get()).build(null));
@@ -156,7 +160,7 @@ public final class ArcaneArchives {
     public static final RegistryObject<Block> BRAZIER_FIRE = BLOCKS.register("brazier_of_hoarding_fire",
             () -> new Block(BlockBehaviour.Properties.of().noCollission().noOcclusion().noLootTable().lightLevel(state -> 15)));
     public static final RegistryObject<Item> BRAZIER_ITEM = ITEMS.register("brazier_of_hoarding",
-            () -> new BlockItem(BRAZIER.get(), new Item.Properties()));
+            () -> new DeviceBlockItem(BRAZIER.get(), new Item.Properties()));
     public static final RegistryObject<BlockEntityType<BrazierBlockEntity>> BRAZIER_ENTITY =
             BLOCK_ENTITIES.register("brazier",
                     () -> BlockEntityType.Builder.of(BrazierBlockEntity::new, BRAZIER.get()).build(null));
@@ -212,7 +216,7 @@ public final class ArcaneArchives {
             () -> new GemCuttersTableBlock(BlockBehaviour.Properties.of().strength(3.0F).sound(SoundType.METAL)
                     .lightLevel(state -> 15).pushReaction(PushReaction.BLOCK).noOcclusion()));
     public static final RegistryObject<Item> GEMCUTTERS_TABLE_ITEM = ITEMS.register("gemcutters_table",
-            () -> new BlockItem(GEMCUTTERS_TABLE.get(), new Item.Properties()));
+            () -> new DeviceBlockItem(GEMCUTTERS_TABLE.get(), new Item.Properties()));
     public static final RegistryObject<BlockEntityType<GemCuttersTableBlockEntity>> GEMCUTTERS_TABLE_ENTITY =
             BLOCK_ENTITIES.register("gemcutterstable", () -> BlockEntityType.Builder
                     .of(GemCuttersTableBlockEntity::new, GEMCUTTERS_TABLE.get()).build(null));
@@ -250,11 +254,23 @@ public final class ArcaneArchives {
             RECIPE_TYPES.register("natural_recharge", () -> RecipeType.simple(id("natural_recharge")));
     public static final RegistryObject<RecipeSerializer<NaturalRechargeRule>> NATURAL_RECHARGE_SERIALIZER =
             RECIPE_SERIALIZERS.register("natural_recharge", NaturalRechargeRule::serializer);
+    public static final RegistryObject<RecipeType<BlockTransformRule>> BLOCK_TRANSFORM_TYPE =
+            RECIPE_TYPES.register("block_transform", () -> RecipeType.simple(id("block_transform")));
+    public static final RegistryObject<RecipeSerializer<BlockTransformRule>> BLOCK_TRANSFORM_SERIALIZER =
+            RECIPE_SERIALIZERS.register("block_transform", BlockTransformRule::serializer);
+    public static final RegistryObject<RecipeType<MunchstoneFoodRule>> MUNCHSTONE_FOOD_TYPE =
+            RECIPE_TYPES.register("munchstone_food", () -> RecipeType.simple(id("munchstone_food")));
+    public static final RegistryObject<RecipeSerializer<MunchstoneFoodRule>> MUNCHSTONE_FOOD_SERIALIZER =
+            RECIPE_SERIALIZERS.register("munchstone_food", MunchstoneFoodRule::serializer);
+    public static final RegistryObject<RecipeType<ArsenalEffectRule>> ARSENAL_EFFECT_TYPE =
+            RECIPE_TYPES.register("arsenal_effect", () -> RecipeType.simple(id("arsenal_effect")));
+    public static final RegistryObject<RecipeSerializer<ArsenalEffectRule>> ARSENAL_EFFECT_SERIALIZER =
+            RECIPE_SERIALIZERS.register("arsenal_effect", ArsenalEffectRule::serializer);
     public static final RegistryObject<RadiantCraftingTableBlock> RADIANT_CRAFTING_TABLE = BLOCKS.register("radiant_crafting_table",
             () -> new RadiantCraftingTableBlock(BlockBehaviour.Properties.of().strength(3.0F).sound(SoundType.GLASS)
                     .lightLevel(state -> 15).noOcclusion()));
     public static final RegistryObject<Item> RADIANT_CRAFTING_TABLE_ITEM = ITEMS.register("radiant_crafting_table",
-            () -> new BlockItem(RADIANT_CRAFTING_TABLE.get(), new Item.Properties()));
+            () -> new DeviceBlockItem(RADIANT_CRAFTING_TABLE.get(), new Item.Properties()));
     public static final RegistryObject<BlockEntityType<RadiantCraftingTableBlockEntity>> RADIANT_CRAFTING_TABLE_ENTITY =
             BLOCK_ENTITIES.register("radiantcraftingtable", () -> BlockEntityType.Builder
                     .of(RadiantCraftingTableBlockEntity::new, RADIANT_CRAFTING_TABLE.get()).build(null));
@@ -295,7 +311,7 @@ public final class ArcaneArchives {
             () -> new ManifestLecternBlock(BlockBehaviour.Properties.of().strength(1.5F).sound(SoundType.WOOD)
                     .lightLevel(state -> 15).pushReaction(PushReaction.BLOCK).noOcclusion()));
     public static final RegistryObject<Item> MANIFEST_LECTERN_ITEM = ITEMS.register("lectern_manifest",
-            () -> new BlockItem(MANIFEST_LECTERN.get(), new Item.Properties()));
+            () -> new DeviceBlockItem(MANIFEST_LECTERN.get(), new Item.Properties()));
     public static final RegistryObject<MenuType<ManifestMenu>> MANIFEST_MENU =
             MENUS.register("manifest", () -> new MenuType<>(ManifestMenu::new, FeatureFlags.DEFAULT_FLAGS));
 

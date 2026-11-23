@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.storage;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.network.ArchiveNetworks;
 import net.minecraft.core.BlockPos;
@@ -43,12 +46,14 @@ import net.minecraftforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.UUID;
 
 public final class RadiantAmphoraItem extends Item {
     private static final String TANK_POSITION = "homeTank";
     private static final String TANK_DIMENSION = "homeTankDim";
     private static final String TANK_ID = "homeTankId";
     private static final String MODE = "mode";
+    private static final ThreadLocal<TransferActor> TRANSFER_ACTOR = new ThreadLocal<>();
 
     public RadiantAmphoraItem(Properties properties) {
         super(properties);
@@ -72,7 +77,8 @@ public final class RadiantAmphoraItem extends Item {
     public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
         Player player = event.getEntity();
         if (!event.getLevel().isClientSide && event.getAction() == PlayerInteractEvent.LeftClickBlock.Action.START
-                && player.isShiftKeyDown() && player.getMainHandItem().is(ArcaneArchives.RADIANT_AMPHORA.get())) {
+                && player.isShiftKeyDown() && player.getMainHandItem().is(ArcaneArchives.RADIANT_AMPHORA.get())
+                && ArchiveStages.allowsFeature(player, ArchiveFeature.AMPHORA_MODE)) {
             toggleMode(player.getMainHandItem());
         }
     }
@@ -84,6 +90,9 @@ public final class RadiantAmphoraItem extends Item {
         if (player == null || !player.isShiftKeyDown()
                 || !(level.getBlockEntity(context.getClickedPos()) instanceof RadiantTankBlockEntity tank)) {
             return InteractionResult.PASS;
+        }
+        if (!ArchiveStages.allowsFeature(player, ArchiveFeature.AMPHORA_LINK)) {
+            return InteractionResult.FAIL;
         }
         if (level instanceof ServerLevel serverLevel) {
             if (tank.owner() == null || tank.deviceId() == null
@@ -130,6 +139,9 @@ public final class RadiantAmphoraItem extends Item {
         if (!linked(amphora)) {
             return InteractionResultHolder.pass(amphora);
         }
+        if (!ArchiveStages.allowsFeature(player, ArchiveFeature.AMPHORA_TRANSFER)) {
+            return InteractionResultHolder.fail(amphora);
+        }
         boolean drain = drainMode(amphora);
         BlockHitResult hit = getPlayerPOVHitResult(level, player, drain ? ClipContext.Fluid.NONE : ClipContext.Fluid.SOURCE_ONLY);
         if (!hit.getType().equals(HitResult.Type.BLOCK)) {
@@ -147,14 +159,39 @@ public final class RadiantAmphoraItem extends Item {
                 || !ArchiveNetworks.get(player.getServer()).sharesHive(player.getUUID(), tank.owner())) {
             return InteractionResultHolder.fail(amphora);
         }
-        FluidActionResult result = drain ? placeFluid(amphora, level, player, hand, target)
-                : FluidUtil.tryPickUpFluid(amphora, player, level, target, hit.getDirection());
-        return result.isSuccess() ? InteractionResultHolder.consume(result.getResult()) : InteractionResultHolder.fail(amphora);
+        TransferActor previous = TRANSFER_ACTOR.get();
+        TRANSFER_ACTOR.set(new TransferActor(tank.deviceId(), player));
+        try {
+            FluidActionResult result = drain ? placeFluid(amphora, level, player, hand, target)
+                    : FluidUtil.tryPickUpFluid(amphora, player, level, target, hit.getDirection());
+            return result.isSuccess() ? InteractionResultHolder.consume(result.getResult()) : InteractionResultHolder.fail(amphora);
+        } finally {
+            if (previous == null) {
+                TRANSFER_ACTOR.remove();
+            } else {
+                TRANSFER_ACTOR.set(previous);
+            }
+        }
+    }
+
+    private record TransferActor(UUID tankId, Player player) {}
+
+    @Nullable
+    private static RadiantTankBlockEntity transferTank(ItemStack stack) {
+        RadiantTankBlockEntity tank = resolveTank(stack);
+        if (tank == null || !(tank.getLevel() instanceof ServerLevel level)) {
+            return null;
+        }
+        TransferActor actor = TRANSFER_ACTOR.get();
+        boolean allowed = actor != null && actor.tankId().equals(tank.deviceId())
+                ? ArchiveStages.allowsFeature(actor.player(), ArchiveFeature.AMPHORA_TRANSFER)
+                : ArchiveStages.allowsOwner(level, tank.owner(), ArchiveFeature.AMPHORA_TRANSFER.id());
+        return allowed ? tank : null;
     }
 
     private static FluidActionResult placeFluid(ItemStack stack, Level level, @Nullable Player player,
                                                 InteractionHand hand, BlockPos target) {
-        RadiantTankBlockEntity tank = resolveTank(stack);
+        RadiantTankBlockEntity tank = transferTank(stack);
         if (tank == null) {
             return FluidActionResult.FAILURE;
         }
@@ -169,6 +206,9 @@ public final class RadiantAmphoraItem extends Item {
         DispenserBlock.registerBehavior(ArcaneArchives.RADIANT_AMPHORA.get(), new DefaultDispenseItemBehavior() {
             @Override
             protected ItemStack execute(BlockSource source, ItemStack stack) {
+                if (transferTank(stack) == null) {
+                    return stack;
+                }
                 Direction facing = source.getBlockState().getValue(DispenserBlock.FACING);
                 BlockPos target = source.getPos().relative(facing);
                 ServerLevel level = source.getLevel();
@@ -242,19 +282,19 @@ public final class RadiantAmphoraItem extends Item {
 
         @Override
         public int fill(FluidStack fluid, FluidAction action) {
-            RadiantTankBlockEntity tank = resolveTank(stack);
+            RadiantTankBlockEntity tank = transferTank(stack);
             return tank == null ? 0 : tank.tank().fill(fluid, action);
         }
 
         @Override
         public FluidStack drain(FluidStack fluid, FluidAction action) {
-            RadiantTankBlockEntity tank = resolveTank(stack);
+            RadiantTankBlockEntity tank = transferTank(stack);
             return tank == null ? FluidStack.EMPTY : tank.tank().drain(fluid, action);
         }
 
         @Override
         public FluidStack drain(int amount, FluidAction action) {
-            RadiantTankBlockEntity tank = resolveTank(stack);
+            RadiantTankBlockEntity tank = transferTank(stack);
             return tank == null ? FluidStack.EMPTY : tank.tank().drain(amount, action);
         }
     }

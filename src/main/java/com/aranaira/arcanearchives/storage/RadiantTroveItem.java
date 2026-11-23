@@ -4,7 +4,7 @@ import com.aranaira.arcanearchives.ArcaneArchives;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.BlockItem;
+import com.aranaira.arcanearchives.integration.stages.DeviceBlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
@@ -18,7 +18,7 @@ import net.minecraftforge.items.IItemHandler;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public final class RadiantTroveItem extends BlockItem {
+public final class RadiantTroveItem extends DeviceBlockItem {
     public RadiantTroveItem(Block block, Properties properties) {
         super(block, properties);
     }

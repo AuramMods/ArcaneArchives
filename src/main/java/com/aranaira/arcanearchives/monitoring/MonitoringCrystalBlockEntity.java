@@ -1,9 +1,12 @@
 package com.aranaira.arcanearchives.monitoring;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
 import com.aranaira.arcanearchives.network.ArchiveDeviceBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -28,7 +31,8 @@ public final class MonitoringCrystalBlockEntity extends ArchiveDeviceBlockEntity
 
     public Optional<IItemHandler> targetInventory() {
         BlockPos pos = targetPos();
-        if (level == null || !level.hasChunkAt(pos)) {
+        if (level == null || !level.hasChunkAt(pos)
+                || (level instanceof ServerLevel server && !ArchiveStages.allowsOwner(server, owner(), ArchiveFeature.MONITORING_READ.id()))) {
             return Optional.empty();
         }
         BlockEntity target = level.getBlockEntity(pos);

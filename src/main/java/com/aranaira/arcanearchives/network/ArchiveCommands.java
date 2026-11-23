@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.network;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.storage.ArchiveNetwork;
 import com.aranaira.arcanearchives.storage.BrazierBlockEntity;
@@ -41,6 +44,9 @@ public final class ArchiveCommands {
     }
 
     private static int hive(ServerPlayer player) {
+        if (!ArchiveStages.allowsFeature(player, ArchiveFeature.HIVE_STATUS)) {
+            return 0;
+        }
         var networks = ArchiveNetworks.get(player.serverLevel().getServer());
         UUID id = player.getUUID();
         if (!networks.hasHive(id)) {
@@ -72,6 +78,9 @@ public final class ArchiveCommands {
     }
 
     private static int brazier(ServerPlayer player) {
+        if (!ArchiveStages.allowsFeature(player, ArchiveFeature.BRAZIER_ROUTE)) {
+            return 0;
+        }
         var held = player.getMainHandItem();
         if (held.isEmpty()) {
             player.sendSystemMessage(Component.translatable(TEXT + "empty_hand"));
@@ -92,6 +101,9 @@ public final class ArchiveCommands {
     }
 
     private static int tiles(ServerPlayer player, TileScope scope) {
+        if (!ArchiveStages.allowsFeature(player, ArchiveFeature.MONITORING_INSPECT)) {
+            return 0;
+        }
         var server = player.serverLevel().getServer();
         var networks = ArchiveNetworks.get(server);
         if (scope == TileScope.HIVE && !networks.hasHive(player.getUUID())) {

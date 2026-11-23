@@ -3,6 +3,8 @@ package com.aranaira.arcanearchives.tome;
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.client.tome.TomeOfArcanaScreen;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -37,6 +39,9 @@ public final class TomeOfArcanaItem extends Item {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        if (!ArchiveStages.allowsFeature(player, ArchiveFeature.TOME_READ)) {
+            return InteractionResultHolder.fail(player.getItemInHand(hand));
+        }
         if (level.isClientSide) {
             DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> TomeOfArcanaScreen::open);
         }
@@ -56,7 +61,8 @@ public final class TomeOfArcanaItem extends Item {
 
     public static void onBlockBreak(BlockEvent.BreakEvent event) {
         if (ArchiveConfig.TOME_FROM_BOOKSHELF.get() && event.getState().is(Blocks.BOOKSHELF)
-                && event.getPlayer() instanceof ServerPlayer player) {
+                && event.getPlayer() instanceof ServerPlayer player
+                && ArchiveStages.allowsFeature(player, ArchiveFeature.TOME_BOOKSHELF)) {
             offerTome(player, "bookshelf");
         }
     }
@@ -65,7 +71,8 @@ public final class TomeOfArcanaItem extends Item {
         if (event.getEntity() instanceof ServerPlayer player) {
             if (event.getCrafting().is(ArcaneArchives.TOME_OF_ARCANA.get())) {
                 markReceived(player);
-            } else if (ArchiveConfig.TOME_FROM_RESONATOR.get() && event.getCrafting().is(ArcaneArchives.RADIANT_RESONATOR_ITEM.get())) {
+            } else if (ArchiveConfig.TOME_FROM_RESONATOR.get() && event.getCrafting().is(ArcaneArchives.RADIANT_RESONATOR_ITEM.get())
+                    && ArchiveStages.allowsFeature(player, ArchiveFeature.TOME_RESONATOR)) {
                 offerTome(player, "resonator");
             }
         }

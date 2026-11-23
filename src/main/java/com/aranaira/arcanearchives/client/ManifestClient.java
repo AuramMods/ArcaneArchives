@@ -4,6 +4,8 @@ import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
 import com.aranaira.arcanearchives.crafting.GemCuttersTableBlock;
 import com.aranaira.arcanearchives.integration.jei.ArchiveJeiPlugin;
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
 import com.aranaira.arcanearchives.manifest.ManifestContents;
 import com.aranaira.arcanearchives.manifest.ManifestMenu;
 import com.aranaira.arcanearchives.manifest.ManifestSync;
@@ -132,6 +134,9 @@ public final class ManifestClient {
         long now = Util.getMillis();
         Minecraft client = Minecraft.getInstance();
         updateTracking(client, now);
+        if (enabled && !mayTrack(client.player)) {
+            return false;
+        }
         boolean inRange = false;
         for (var row : rows) {
             if (enabled && range(row.location()) == Range.IN_RANGE) {
@@ -158,7 +163,7 @@ public final class ManifestClient {
     private static void updateTracking(Minecraft client, long now) {
         Player player = client.player;
         var level = client.level;
-        boolean held = player != null && (player.getMainHandItem().is(ArcaneArchives.MANIFEST.get())
+        boolean held = player != null && mayTrack(player) && (player.getMainHandItem().is(ArcaneArchives.MANIFEST.get())
                 || player.getOffhandItem().is(ArcaneArchives.MANIFEST.get()));
         boolean putAway = holdingManifest && !held;
         holdingManifest = held;
@@ -183,6 +188,11 @@ public final class ManifestClient {
         TRACKED.clear();
         DIAGNOSTICS.clear();
         clearInspection();
+    }
+
+    private static boolean mayTrack(Player player) {
+        return player != null && ArchiveStages.allowsFeature(player, ArchiveFeature.MANIFEST_ACCESS)
+                && ArchiveStages.allowsFeature(player, ArchiveFeature.MANIFEST_TRACK);
     }
 
     static void receiveMarkers(ArchiveNetwork.MarkerBatch packet) {

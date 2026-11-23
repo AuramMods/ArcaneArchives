@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.arsenal;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
 import net.minecraft.network.FriendlyByteBuf;
@@ -60,7 +63,8 @@ public final class GemSocketMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return ArchiveConfig.ARSENAL_ENABLED.get() && (player.level().isClientSide
+        return ArchiveConfig.ARSENAL_ENABLED.get() && ArchiveStages.allowsFeature(player, ArchiveFeature.GEM_SOCKET_USE)
+                && (player.level().isClientSide
                 || socket.is(ArcaneArchives.GEM_SOCKET.get()) && origin.stack(player) == socket);
     }
 

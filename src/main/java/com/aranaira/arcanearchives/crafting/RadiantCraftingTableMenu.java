@@ -1,6 +1,7 @@
 package com.aranaira.arcanearchives.crafting;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
 import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -101,9 +102,10 @@ public final class RadiantCraftingTableMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return table == null || (player.level().getBlockEntity(table.getBlockPos()) == table
+        return ArchiveStages.allowsFeature(player, ArchiveFeature.RADIANT_CRAFTING_USE)
+                && (table == null || (player.level().getBlockEntity(table.getBlockPos()) == table
                 && stillValid(ContainerLevelAccess.create(player.level(), table.getBlockPos()), player,
-                ArcaneArchives.RADIANT_CRAFTING_TABLE.get()));
+                ArcaneArchives.RADIANT_CRAFTING_TABLE.get())));
     }
 
     @Override
@@ -261,7 +263,8 @@ public final class RadiantCraftingTableMenu extends AbstractContainerMenu {
     }
 
     private boolean canCraft(CraftingRecipe recipe) {
-        return ArchiveStages.allowsRadiantCrafting(inventory.player, recipe)
+        return ArchiveStages.allowsFeature(inventory.player, ArchiveFeature.RADIANT_CRAFTING_USE)
+                && ArchiveStages.allowsRadiantCrafting(inventory.player, recipe)
                 && (recipe.isSpecial() || !(inventory.player instanceof ServerPlayer serverPlayer)
                 || !serverPlayer.level().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_LIMITED_CRAFTING)
                 || serverPlayer.getRecipeBook().contains(recipe));

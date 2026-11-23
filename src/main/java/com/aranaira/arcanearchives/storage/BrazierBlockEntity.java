@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.storage;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
 import com.aranaira.arcanearchives.crafting.GemCuttersTableBlockEntity;
@@ -42,7 +45,7 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
     private static final int DEFAULT_RADIUS = 150;
 
     private final ItemIngress itemIngress = new ItemIngress();
-    private final FluidIngress fluidIngress = new FluidIngress();
+    private final FluidIngress fluidIngress = new FluidIngress(null);
     private LazyOptional<IItemHandler> items = LazyOptional.of(() -> itemIngress);
     private LazyOptional<IFluidHandler> fluids = LazyOptional.of(() -> fluidIngress);
     private int radius = DEFAULT_RADIUS;
@@ -65,7 +68,8 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
     }
 
     public boolean canConfigure(Player player) {
-        return !player.isSpectator() && owner() != null && level instanceof ServerLevel serverLevel
+        return !player.isSpectator() && ArchiveStages.allowsFeature(player, ArchiveFeature.BRAZIER_CONFIGURE)
+                && owner() != null && level instanceof ServerLevel serverLevel
                 && ArchiveNetworks.get(serverLevel.getServer()).sharesHive(owner(), player.getUUID());
     }
 
@@ -83,8 +87,15 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
     }
 
     public ItemStack route(ItemStack stack, boolean simulate) {
+        return route(stack, simulate, null);
+    }
+
+    private ItemStack route(ItemStack stack, boolean simulate, Player actor) {
         if (stack.isEmpty()) {
             return ItemStack.EMPTY;
+        }
+        if (!canRoute(actor)) {
+            return stack;
         }
         ItemStack remaining = stack;
         for (ItemTarget target : itemTargets(nearbyDevices(), stack)) {
@@ -97,6 +108,12 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
             playAbsorptionSound();
         }
         return remaining;
+    }
+
+    private boolean canRoute(Player actor) {
+        return level instanceof ServerLevel serverLevel && (actor == null
+                ? ArchiveStages.allowsOwner(serverLevel, owner(), ArchiveFeature.BRAZIER_ROUTE.id())
+                : ArchiveStages.allowsFeature(actor, ArchiveFeature.BRAZIER_ROUTE));
     }
 
     public static List<RoutingWeight> trace(ServerPlayer player, ItemStack stack) {
@@ -178,7 +195,7 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
     }
 
     void acceptDropped(ItemEntity entity) {
-        if (!entity.isAlive() || owner() == null || entity.getPersistentData().getBoolean(REJECTED)) {
+        if (!entity.isAlive() || owner() == null || !canRoute(null) || entity.getPersistentData().getBoolean(REJECTED)) {
             return;
         }
         ItemStack incoming = entity.getItem();
@@ -207,7 +224,7 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
     }
 
     void deposit(Player player) {
-        if (owner() == null || !(level instanceof ServerLevel serverLevel)) {
+        if (owner() == null || !(level instanceof ServerLevel serverLevel) || !canRoute(player)) {
             return;
         }
         Inventory inventory = player.getInventory();
@@ -227,19 +244,19 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
         lastOffered = reference.copyWithCount(1);
         if (!held.isEmpty()) {
             if (held.getCount() == 1) {
-                FluidActionResult emptied = FluidUtil.tryEmptyContainer(held, fluidIngress, Integer.MAX_VALUE, player, true);
+                FluidActionResult emptied = FluidUtil.tryEmptyContainer(held, new FluidIngress(player), Integer.MAX_VALUE, player, true);
                 if (emptied.isSuccess()) {
                     player.setItemInHand(InteractionHand.MAIN_HAND, emptied.getResult());
                     return;
                 }
             }
-            player.setItemInHand(InteractionHand.MAIN_HAND, route(held, false));
+            player.setItemInHand(InteractionHand.MAIN_HAND, route(held, false, player));
         }
         if (repeat) {
             for (int slot = 0; slot < inventory.items.size(); slot++) {
                 ItemStack stack = inventory.getItem(slot);
                 if (ItemStack.isSameItemSameTags(stack, reference) && !isFavourite(stack)) {
-                    inventory.setItem(slot, route(stack, false));
+                    inventory.setItem(slot, route(stack, false, player));
                 }
             }
         }
@@ -360,6 +377,12 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
     }
 
     private final class FluidIngress implements IFluidHandler {
+        private final Player actor;
+
+        private FluidIngress(Player actor) {
+            this.actor = actor;
+        }
+
         @Override
         public int getTanks() {
             return 1;
@@ -382,7 +405,7 @@ public final class BrazierBlockEntity extends ArchiveDeviceBlockEntity {
 
         @Override
         public int fill(FluidStack fluid, FluidAction action) {
-            if (fluid.isEmpty()) {
+            if (fluid.isEmpty() || !canRoute(actor)) {
                 return 0;
             }
             List<FluidTank> targets = new ArrayList<>();

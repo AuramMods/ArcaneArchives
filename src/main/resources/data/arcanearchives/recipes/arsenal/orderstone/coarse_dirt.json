@@ -1,0 +1,12 @@
+{
+  "type": "arcanearchives:block_transform",
+  "gem": "orderstone",
+  "blocks": {
+    "blocks": [
+      "minecraft:coarse_dirt"
+    ]
+  },
+  "output": {
+    "Name": "minecraft:dirt"
+  }
+}

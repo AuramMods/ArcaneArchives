@@ -51,7 +51,8 @@ public final class ArsenalEvents {
     public static void onApothecaryUse(PlayerInteractEvent.RightClickBlock event) {
         if (event.getEntity() instanceof ServerPlayer player && !player.isSpectator() && event.getUseBlock() != Event.Result.DENY
                 && ArchiveConfig.ARSENAL_ENABLED.get() && ModList.get().isLoaded("botania")
-                && player.mayInteract(player.serverLevel(), event.getPos()) && allowsCast(player, GemType.RIVERTEAR)) {
+                && player.mayInteract(player.serverLevel(), event.getPos()) && allowsCast(player, GemType.RIVERTEAR)
+                && ArchiveStages.allowsFeature(player.level(), player, ArchiveStages.BOTANIA_APOTHECARY)) {
             BotaniaRivertear.fill(player, event.getPos());
         }
     }
@@ -120,13 +121,15 @@ public final class ArsenalEvents {
         long time = player.serverLevel().getGameTime();
         for (var gem : ArsenalGems.available(player)) {
             var stack = gem.stack();
-            if (gem.is(GemType.SALVEGLEAM) && allowsCast(player, GemType.SALVEGLEAM)
-                    && player.getHealth() < player.getMaxHealth() && GemCharge.toggled(stack)
-                    && GemCharge.available(stack, 1) && GemCharge.cooldown(stack, "last_pulse", time, 20)) {
-                player.heal(1);
-                ArsenalGems.spend(player, gem, 1);
-                if (!GemCharge.available(stack, 1)) {
-                    ArsenalGems.toggle(gem, false);
+            if (gem.is(GemType.SALVEGLEAM) && allowsCast(player, GemType.SALVEGLEAM)) {
+                var tuning = ArsenalEffectRule.settings(player.level(), ArsenalEffectRule.Effect.SALVEGLEAM);
+                if (tuning.amount() > 0 && player.getHealth() < player.getMaxHealth() && GemCharge.toggled(stack)
+                        && GemCharge.available(stack, tuning.charge()) && GemCharge.cooldown(stack, "last_pulse", time, tuning.ticks())) {
+                    player.heal((float) tuning.amount());
+                    ArsenalGems.spend(player, gem, tuning.charge());
+                    if (!GemCharge.available(stack, tuning.charge())) {
+                        ArsenalGems.toggle(gem, false);
+                    }
                 }
             }
             if (GemCharge.remaining(stack) < GemCharge.capacity(stack) && player.serverLevel().isRainingAt(player.blockPosition())
@@ -183,11 +186,14 @@ public final class ArsenalEvents {
         for (var gem : ArsenalGems.available(player)) {
             var stack = gem.stack();
             if (gem.is(GemType.PHOENIXWAY) && allowsCast(player, GemType.PHOENIXWAY) && event.getSource().is(DamageTypeTags.IS_FIRE)
-                    && !player.hasEffect(MobEffects.FIRE_RESISTANCE) && GemCharge.available(stack, 12)) {
-                player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 600));
-                ArsenalGems.spend(player, gem, 12);
-                event.setCanceled(true);
-                return;
+                    && !player.hasEffect(MobEffects.FIRE_RESISTANCE)) {
+                var tuning = ArsenalEffectRule.settings(level, ArsenalEffectRule.Effect.PHOENIXWAY_FIRE_RESISTANCE);
+                if (tuning.ticks() > 0 && GemCharge.available(stack, tuning.charge())) {
+                    player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, tuning.ticks()));
+                    ArsenalGems.spend(player, gem, tuning.charge());
+                    event.setCanceled(true);
+                    return;
+                }
             }
             if (gem.is(GemType.STORMWAY) && allowsCast(player, GemType.STORMWAY) && GemCharge.toggled(stack) && GemCharge.available(stack, 1)
                     && event.getSource().is(DamageTypeTags.IS_PROJECTILE) && event.getSource().getEntity() instanceof Mob attacker

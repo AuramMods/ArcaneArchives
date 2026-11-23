@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.network;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.ChatFormatting;
@@ -47,13 +50,16 @@ public final class HiveLetterItem extends Item {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        if (!canUse(player)) {
+            return InteractionResultHolder.fail(player.getItemInHand(hand));
+        }
         player.startUsingItem(hand);
         return InteractionResultHolder.consume(player.getItemInHand(hand));
     }
 
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entity) {
-        if (!level.isClientSide && entity instanceof Player player && player.getServer() != null) {
+        if (!level.isClientSide && entity instanceof Player player && player.getServer() != null && canUse(player)) {
             MinecraftServer server = player.getServer();
             CompoundTag tag = stack.getTag();
             UUID signer = readId(tag, "creator");
@@ -73,6 +79,15 @@ public final class HiveLetterItem extends Item {
             }
         }
         return stack;
+    }
+
+    private boolean canUse(Player player) {
+        var feature = switch (kind) {
+            case INVITATION -> ArchiveFeature.HIVE_JOIN;
+            case RESIGNATION -> ArchiveFeature.HIVE_LEAVE;
+            case EXPULSION -> ArchiveFeature.HIVE_EXPEL;
+        };
+        return ArchiveStages.allowsFeature(player, feature);
     }
 
     private static boolean join(Player player, UUID owner, String networkName,

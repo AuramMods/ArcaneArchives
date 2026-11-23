@@ -8,7 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
+import com.aranaira.arcanearchives.integration.stages.DeviceBlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -105,7 +105,7 @@ public final class MonitoringCrystalBlock extends BaseEntityBlock {
         super.onRemove(state, level, pos, replacement, movedByPiston);
     }
 
-    public static final class CrystalItem extends BlockItem {
+    public static final class CrystalItem extends DeviceBlockItem {
         public CrystalItem(MonitoringCrystalBlock block, Properties properties) {
             super(block, properties);
         }

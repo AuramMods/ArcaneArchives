@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.manifest;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import com.aranaira.arcanearchives.ArcaneArchives;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -61,7 +64,8 @@ public final class ManifestMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return access.evaluate((level, pos) -> ManifestLecternBlock.isComplete(level, pos)
+        return ArchiveStages.allowsFeature(player, ArchiveFeature.MANIFEST_ACCESS)
+                && access.evaluate((level, pos) -> ManifestLecternBlock.isComplete(level, pos)
                 && player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5) <= 64.0, true);
     }
 

@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.storage;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -28,11 +31,15 @@ public final class ManipulationScepterItem extends Item {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         var entity = level.getBlockEntity(pos);
-        if (entity instanceof RadiantChestBlockEntity chest
+        if (entity instanceof RadiantChestBlockEntity chest && context.getPlayer() != null
+                && ArchiveStages.allowsFeature(context.getPlayer(), ArchiveFeature.STORAGE_USE)
                 && RadiantChestBlock.configureDisplay(chest, context.getPlayer(), context.getClickedFace())) {
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
         if (entity instanceof PortableStorageBlockEntity storage) {
+            if (!ArchiveStages.allowsFeature(level, context.getPlayer(), ArchiveFeature.STORAGE_UPGRADES.id())) {
+                return InteractionResult.FAIL;
+            }
             if (context.getPlayer() instanceof ServerPlayer player) {
                 NetworkHooks.openScreen(player, new SimpleMenuProvider((id, inventory, viewer) ->
                         new StorageUpgradesMenu(id, inventory, storage), storage.getBlockState().getBlock().getName()),

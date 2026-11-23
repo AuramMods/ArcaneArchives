@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.manifest;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import com.aranaira.arcanearchives.client.ManifestClient;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -34,7 +37,7 @@ public final class ManifestSync {
                     }
                     if (packet.item().isEmpty()) {
                         ManifestItem.open(player, ContainerLevelAccess.NULL);
-                    } else {
+                    } else if (ArchiveStages.allowsFeature(player, ArchiveFeature.MANIFEST_TRACK)) {
                         var variant = ManifestContents.Variant.of(packet.item());
                         var matches = ManifestContents.collect(player.server, player.getUUID(), false).stream()
                                 .filter(row -> row.variant().equals(variant)).toList();

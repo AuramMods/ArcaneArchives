@@ -1,0 +1,12 @@
+{
+  "type": "arcanearchives:block_transform",
+  "gem": "orderstone",
+  "blocks": {
+    "blocks": [
+      "minecraft:cracked_stone_bricks"
+    ]
+  },
+  "output": {
+    "Name": "minecraft:stone_bricks"
+  }
+}

@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.storage;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import com.aranaira.arcanearchives.ArcaneArchives;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
@@ -37,6 +40,9 @@ public final class DevouringCharmItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+        if (!ArchiveStages.allowsFeature(player, ArchiveFeature.CHARM_CONFIGURE)) {
+            return InteractionResultHolder.fail(stack);
+        }
         if (player instanceof ServerPlayer serverPlayer) {
             int slot = hand == InteractionHand.MAIN_HAND ? player.getInventory().selected : 40;
             NetworkHooks.openScreen(serverPlayer, new SimpleMenuProvider((id, inventory, viewer) ->
@@ -73,7 +79,8 @@ public final class DevouringCharmItem extends Item {
     }
 
     public static void onItemPickup(EntityItemPickupEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayer player) || player.isSpectator()) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || player.isSpectator()
+                || !ArchiveStages.allowsFeature(player, ArchiveFeature.CHARM_CONSUME)) {
             return;
         }
         var entity = event.getItem();

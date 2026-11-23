@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.crafting;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
@@ -44,6 +47,9 @@ public final class RadiantCraftingTableBlock extends BaseEntityBlock {
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
                                  BlockHitResult hit) {
+        if (!ArchiveStages.allowsFeature(player, ArchiveFeature.RADIANT_CRAFTING_USE)) {
+            return InteractionResult.FAIL;
+        }
         if (level.getBlockEntity(pos) instanceof RadiantCraftingTableBlockEntity table) {
             if (player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.openMenu(table);

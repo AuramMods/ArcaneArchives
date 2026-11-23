@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.crafting;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -122,6 +125,9 @@ public final class GemCuttersTableBlock extends BaseEntityBlock {
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand,
                                  BlockHitResult hit) {
+        if (!ArchiveStages.allowsFeature(player, ArchiveFeature.GEM_CUTTER_USE)) {
+            return InteractionResult.FAIL;
+        }
         BlockPos main = inventoryPosition(pos, state);
         if (level.getBlockEntity(main) instanceof GemCuttersTableBlockEntity table) {
             if (player instanceof ServerPlayer serverPlayer) {

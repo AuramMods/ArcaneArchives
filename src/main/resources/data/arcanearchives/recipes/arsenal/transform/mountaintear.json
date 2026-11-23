@@ -1,0 +1,9 @@
+{
+  "type": "arcanearchives:block_transform",
+  "gem": "mountaintear",
+  "target": "replaceable",
+  "output": {
+    "Name": "minecraft:lava"
+  },
+  "creative_free": true
+}

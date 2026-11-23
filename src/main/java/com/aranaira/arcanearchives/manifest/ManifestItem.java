@@ -3,6 +3,8 @@ package com.aranaira.arcanearchives.manifest;
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.client.ManifestClient;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,15 +35,22 @@ public final class ManifestItem extends Item {
             if (level.isClientSide) {
                 DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> ManifestClient::clearTracking);
             }
-        } else if (player instanceof ServerPlayer serverPlayer) {
-            open(serverPlayer, ContainerLevelAccess.NULL);
+        } else {
+            if (!ArchiveStages.allowsFeature(player, ArchiveFeature.MANIFEST_ACCESS)) {
+                return InteractionResultHolder.fail(player.getItemInHand(hand));
+            }
+            if (player instanceof ServerPlayer serverPlayer) {
+                open(serverPlayer, ContainerLevelAccess.NULL);
+            }
         }
         return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide);
     }
 
     static void open(ServerPlayer player, ContainerLevelAccess access) {
-        NetworkHooks.openScreen(player, new SimpleMenuProvider((id, inventory, ignored) -> new ManifestMenu(id, inventory, access),
-                Component.translatable("item.arcanearchives.manifest")));
+        if (ArchiveStages.allowsFeature(player, ArchiveFeature.MANIFEST_ACCESS)) {
+            NetworkHooks.openScreen(player, new SimpleMenuProvider((id, inventory, ignored) -> new ManifestMenu(id, inventory, access),
+                    Component.translatable("item.arcanearchives.manifest")));
+        }
     }
 
     public static boolean hasManifest(Player player) {
@@ -50,7 +59,7 @@ public final class ManifestItem extends Item {
     }
 
     static boolean mayUseKeybind(ServerPlayer player) {
-        if (player.isSpectator()) {
+        if (player.isSpectator() || !ArchiveStages.allowsFeature(player, ArchiveFeature.MANIFEST_ACCESS)) {
             return false;
         }
         if (ArchiveConfig.REQUIRE_MANIFEST.get() && !hasManifest(player)) {

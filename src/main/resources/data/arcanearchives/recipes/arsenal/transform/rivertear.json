@@ -1,0 +1,10 @@
+{
+  "type": "arcanearchives:block_transform",
+  "gem": "rivertear",
+  "target": "replaceable",
+  "output": {
+    "Name": "minecraft:water"
+  },
+  "creative_free": true,
+  "cool_dimensions_only": true
+}

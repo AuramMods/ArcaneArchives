@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.storage;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -65,6 +68,9 @@ public final class RadiantTroveBlock extends PortableStorageBlock {
 
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (!ArchiveStages.allowsFeature(player, ArchiveFeature.STORAGE_USE)) {
+            return InteractionResult.FAIL;
+        }
         if (hand == InteractionHand.MAIN_HAND && level.getBlockEntity(pos) instanceof RadiantTroveBlockEntity trove) {
             trove.deposit(player);
             return InteractionResult.sidedSuccess(level.isClientSide);
@@ -74,7 +80,7 @@ public final class RadiantTroveBlock extends PortableStorageBlock {
 
     @Override
     public void attack(BlockState state, Level level, BlockPos pos, Player player) {
-        if (!level.isClientSide && hitsDispensingFace(state, pos, player)
+        if (!level.isClientSide && ArchiveStages.allowsFeature(player, ArchiveFeature.STORAGE_USE) && hitsDispensingFace(state, pos, player)
                 && level.getBlockEntity(pos) instanceof RadiantTroveBlockEntity trove) {
             trove.dispense(player);
         }

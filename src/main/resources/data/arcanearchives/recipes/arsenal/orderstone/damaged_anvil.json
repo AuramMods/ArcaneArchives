@@ -1,0 +1,14 @@
+{
+  "type": "arcanearchives:block_transform",
+  "gem": "orderstone",
+  "blocks": {
+    "blocks": [
+      "minecraft:damaged_anvil"
+    ]
+  },
+  "output": {
+    "Name": "minecraft:chipped_anvil"
+  },
+  "charge": 25,
+  "preserve_facing": true
+}

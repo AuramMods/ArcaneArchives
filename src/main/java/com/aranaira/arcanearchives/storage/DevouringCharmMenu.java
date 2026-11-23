@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.storage;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.arsenal.ArcaneGemItem;
 import com.aranaira.arcanearchives.arsenal.GemCharge;
@@ -65,6 +68,9 @@ public final class DevouringCharmMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
+        if (!ArchiveStages.allowsFeature(player, ArchiveFeature.CHARM_CONFIGURE)) {
+            return false;
+        }
         ItemStack current = player.getInventory().getItem(heldSlot);
         return current.is(ArcaneArchives.DEVOURING_CHARM.get()) && (player.level().isClientSide || current == charm);
     }

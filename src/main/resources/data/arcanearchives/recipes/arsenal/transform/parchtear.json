@@ -1,0 +1,8 @@
+{
+  "type": "arcanearchives:block_transform",
+  "gem": "parchtear",
+  "target": "liquid",
+  "output": {
+    "Name": "arcanearchives:fake_air"
+  }
+}

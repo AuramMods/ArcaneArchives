@@ -1,6 +1,8 @@
 package com.aranaira.arcanearchives.storage;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.StageRule;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -23,6 +25,8 @@ import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @GameTestHolder(ArcaneArchives.ID)
@@ -83,6 +87,35 @@ public final class RadiantAmphoraGameTests {
                             && !RadiantAmphoraItem.drainMode(dispenser.getItem(0)),
                     "A successful dispense should consume one bucket and keep the same Amphora and mode");
         });
+    }
+
+    @GameTest(template = "chest_fixture")
+    public static void stagedAutomationLeavesOfflineOwnersTankUntouched(GameTestHelper test) {
+        RadiantTankBlockEntity tank = placeTank(test, TANK_POS);
+        tank.bindTo(UUID.randomUUID());
+        tank.tank().fill(new FluidStack(Fluids.WATER, 2000), IFluidHandler.FluidAction.EXECUTE);
+        ItemStack stack = new ItemStack(ArcaneArchives.RADIANT_AMPHORA.get());
+        RadiantAmphoraItem.link(stack, test.getLevel(), tank);
+        var handler = FluidUtil.getFluidHandler(stack).orElseThrow(AssertionError::new);
+        var manager = test.getLevel().getRecipeManager();
+        var previous = List.copyOf(manager.getRecipes());
+        var recipes = new ArrayList<>(previous);
+        recipes.add(new StageRule(StageRule.Scope.FEATURE.key(ArchiveFeature.AMPHORA_TRANSFER.id()),
+                List.of("test_automation"), List.of()));
+        try {
+            manager.replaceRecipes(recipes);
+            test.assertTrue(handler.fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE) == 0
+                            && handler.drain(1000, IFluidHandler.FluidAction.SIMULATE).isEmpty()
+                            && handler.drain(1000, IFluidHandler.FluidAction.EXECUTE).isEmpty()
+                            && tank.tank().getFluidAmount() == 2000,
+                    "A gated automated transfer with an offline owner must reject both simulation and execution");
+        } finally {
+            manager.replaceRecipes(previous);
+        }
+        test.assertTrue(handler.drain(1000, IFluidHandler.FluidAction.EXECUTE).getAmount() == 1000
+                        && tank.tank().getFluidAmount() == 1000,
+                "Removing the gate restores classic automation for an offline owner");
+        test.succeed();
     }
 
     private static RadiantTankBlockEntity placeTank(GameTestHelper test, BlockPos pos) {

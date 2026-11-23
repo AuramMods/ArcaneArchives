@@ -1,0 +1,12 @@
+{
+  "type": "arcanearchives:block_transform",
+  "gem": "orderstone",
+  "blocks": {
+    "blocks": [
+      "minecraft:mycelium"
+    ]
+  },
+  "output": {
+    "Name": "minecraft:podzol"
+  }
+}

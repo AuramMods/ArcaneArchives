@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.arsenal;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
 import net.minecraft.ChatFormatting;
@@ -33,6 +36,9 @@ public final class GemSocketItem extends Item {
         var stack = player.getItemInHand(hand);
         if (!ArchiveConfig.ARSENAL_ENABLED.get()) {
             return InteractionResultHolder.pass(stack);
+        }
+        if (!ArchiveStages.allowsFeature(player, ArchiveFeature.GEM_SOCKET_USE)) {
+            return InteractionResultHolder.fail(stack);
         }
         if (player instanceof ServerPlayer server) {
             open(server, new SlotRef(hand == InteractionHand.MAIN_HAND ? player.getInventory().selected : 40, "", -1));
@@ -73,7 +79,8 @@ public final class GemSocketItem extends Item {
     }
 
     public static void openAvailable(ServerPlayer player) {
-        if (!ArchiveConfig.ARSENAL_ENABLED.get() || player.isSpectator()) {
+        if (!ArchiveConfig.ARSENAL_ENABLED.get() || player.isSpectator()
+                || !ArchiveStages.allowsFeature(player, ArchiveFeature.GEM_SOCKET_USE)) {
             return;
         }
         int selected = player.getInventory().selected;

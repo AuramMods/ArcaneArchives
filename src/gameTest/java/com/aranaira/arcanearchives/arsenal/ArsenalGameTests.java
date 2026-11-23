@@ -2,8 +2,11 @@ package com.aranaira.arcanearchives.arsenal;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
+import com.aranaira.arcanearchives.crafting.BlockSelector;
 import com.aranaira.arcanearchives.crafting.CountedIngredient;
+import com.aranaira.arcanearchives.crafting.FluidSelector;
 import com.aranaira.arcanearchives.crafting.GemCuttingRecipe;
+import com.aranaira.arcanearchives.integration.stages.StageRule;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -139,6 +142,43 @@ public final class ArsenalGameTests {
         } finally {
             manager.replaceRecipes(original);
         }
+        test.succeed();
+    }
+
+    @GameTest(template = "chest_fixture")
+    public static void orderstoneUsesScriptedOutputCostAndStage(GameTestHelper test) {
+        withArsenal(true, () -> {
+            var level = test.getLevel();
+            var player = player(test);
+            var gem = gem(GemType.ORDERSTONE, 9);
+            player.setItemInHand(InteractionHand.MAIN_HAND, gem);
+            var pos = test.absolutePos(TARGET);
+            test.setBlock(TARGET, Blocks.SAND);
+            var hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
+            var context = new UseOnContext(player, InteractionHand.MAIN_HAND, hit);
+            var manager = level.getRecipeManager();
+            var previous = List.copyOf(manager.getRecipes());
+            var recipes = new ArrayList<>(previous);
+            var id = ArcaneArchives.id("test/orderstone");
+            var selector = new BlockSelector(List.of(Blocks.SAND), List.of(), List.of());
+            var settings = new BlockTransformRule.Settings(GemType.ORDERSTONE, BlockTransformRule.Target.ANY, selector,
+                    FluidSelector.ANY, Blocks.GLASS.defaultBlockState(), 3, -10, false, false, false, false);
+            recipes.add(new BlockTransformRule(id, settings));
+            var staged = new ArrayList<>(recipes);
+            staged.add(new StageRule(StageRule.Scope.RECIPE.key(id), List.of("test_access"), List.of()));
+            try {
+                manager.replaceRecipes(staged);
+                gem.getItem().onItemUseFirst(gem, context);
+                test.assertTrue(test.getBlockState(TARGET).is(Blocks.SAND) && GemCharge.remaining(gem) == 9,
+                        "A gated transformation leaves the block and gem untouched");
+                manager.replaceRecipes(recipes);
+                gem.getItem().onItemUseFirst(gem, context);
+                test.assertTrue(test.getBlockState(TARGET).is(Blocks.GLASS) && GemCharge.remaining(gem) == 6,
+                        "The custom rule changes both the resulting block and the charge cost");
+            } finally {
+                manager.replaceRecipes(previous);
+            }
+        });
         test.succeed();
     }
 

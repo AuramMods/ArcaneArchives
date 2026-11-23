@@ -1,6 +1,7 @@
 package com.aranaira.arcanearchives.crafting;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
 import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -107,6 +108,9 @@ public final class GemCuttersTableMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
+        if (!ArchiveStages.allowsFeature(player, ArchiveFeature.GEM_CUTTER_USE)) {
+            return false;
+        }
         if (table == null) {
             return true;
         }
@@ -268,7 +272,8 @@ public final class GemCuttersTableMenu extends AbstractContainerMenu {
     }
 
     private static boolean allowedByStages(Player player, GemCuttingRecipe recipe) {
-        return ArchiveStages.allowsRecipe(player.level(), player, ArchiveStages.GEM_CUTTING, recipe.getId());
+        return ArchiveStages.allowsFeature(player, ArchiveFeature.GEM_CUTTER_USE)
+                && ArchiveStages.allowsRecipe(player.level(), player, ArchiveStages.GEM_CUTTING, recipe.getId());
     }
 
     private void returnIngredients(Player player, SimpleContainer used) {

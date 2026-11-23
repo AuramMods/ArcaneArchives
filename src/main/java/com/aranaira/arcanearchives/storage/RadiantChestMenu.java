@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.storage;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import com.aranaira.arcanearchives.ArcaneArchives;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
@@ -72,7 +75,8 @@ public class RadiantChestMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) {
-        return stillValid(access, player, ArcaneArchives.RADIANT_CHEST.get())
+        return ArchiveStages.allowsFeature(player, ArchiveFeature.STORAGE_USE)
+                && stillValid(access, player, ArcaneArchives.RADIANT_CHEST.get())
                 && (serverChest == null || !serverChest.isRemoved() && player.level().getBlockEntity(pos) == serverChest);
     }
 

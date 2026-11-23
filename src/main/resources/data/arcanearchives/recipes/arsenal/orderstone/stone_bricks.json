@@ -1,0 +1,13 @@
+{
+  "type": "arcanearchives:block_transform",
+  "gem": "orderstone",
+  "blocks": {
+    "blocks": [
+      "minecraft:stone_bricks"
+    ]
+  },
+  "output": {
+    "Name": "minecraft:chiseled_stone_bricks"
+  },
+  "charge": 4
+}

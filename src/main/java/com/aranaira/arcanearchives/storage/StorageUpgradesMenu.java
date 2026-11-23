@@ -1,6 +1,8 @@
 package com.aranaira.arcanearchives.storage;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -74,8 +76,15 @@ public final class StorageUpgradesMenu extends AbstractContainerMenu {
     @Override
     public boolean stillValid(Player player) {
         var block = tank ? ArcaneArchives.RADIANT_TANK.get() : ArcaneArchives.RADIANT_TROVE.get();
-        return stillValid(access, player, block)
+        return ArchiveStages.allowsFeature(player, ArchiveFeature.STORAGE_UPGRADES) && stillValid(access, player, block)
                 && (storage == null || !storage.isRemoved() && player.level().getBlockEntity(pos) == storage);
+    }
+
+    @Override
+    public void clicked(int index, int button, net.minecraft.world.inventory.ClickType type, Player player) {
+        if (stillValid(player)) {
+            super.clicked(index, button, type, player);
+        }
     }
 
     @Override

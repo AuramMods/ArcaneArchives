@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.storage;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.arsenal.ArsenalGems;
 import com.aranaira.arcanearchives.arsenal.GemSocketItem;
@@ -51,7 +54,8 @@ public final class ArchiveNetwork {
                 .decoder(data -> new ToggleAmphora())
                 .consumerMainThread((packet, context) -> {
                     ServerPlayer player = context.get().getSender();
-                    if (player != null && player.getMainHandItem().is(ArcaneArchives.RADIANT_AMPHORA.get())) {
+                    if (player != null && player.getMainHandItem().is(ArcaneArchives.RADIANT_AMPHORA.get())
+                            && ArchiveStages.allowsFeature(player, ArchiveFeature.AMPHORA_MODE)) {
                         RadiantAmphoraItem.toggleMode(player.getMainHandItem());
                     }
                 })

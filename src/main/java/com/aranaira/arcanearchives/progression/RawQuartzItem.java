@@ -77,7 +77,9 @@ public final class RawQuartzItem extends Item {
         if (!level.mayInteract(player, pos) || !player.mayUseItemAt(pos, context.getClickedFace(), stack)) {
             return InteractionResult.FAIL;
         }
-        if (!ArchiveStages.allowsRecipe(level, player, ArchiveStages.CHEST_CONVERSION, rule.id())) {
+        if (!ArchiveStages.allowsRecipe(level, player, ArchiveStages.CHEST_CONVERSION, rule.id())
+                || (rule.output().is(ArcaneArchives.RADIANT_CHEST.get())
+                && !ArchiveStages.allowsFeature(level, player, ArchiveStages.placement(ArcaneArchives.RADIANT_CHEST.getId())))) {
             return InteractionResult.FAIL;
         }
         if (state.getValue(ChestBlock.TYPE) != ChestType.SINGLE) {

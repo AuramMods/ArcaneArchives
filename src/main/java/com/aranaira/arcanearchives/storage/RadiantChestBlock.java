@@ -1,5 +1,8 @@
 package com.aranaira.arcanearchives.storage;
 
+import com.aranaira.arcanearchives.integration.stages.ArchiveFeature;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
+
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
 import net.minecraft.core.BlockPos;
@@ -39,6 +42,9 @@ public final class RadiantChestBlock extends BaseEntityBlock {
 
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (!ArchiveStages.allowsFeature(player, ArchiveFeature.STORAGE_USE)) {
+            return InteractionResult.FAIL;
+        }
         if (!(level.getBlockEntity(pos) instanceof RadiantChestBlockEntity chest)) {
             return InteractionResult.PASS;
         }
