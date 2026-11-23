@@ -6,6 +6,10 @@ Arcane Archives adds magical storage, automation, and progression powered by Rad
 
 The port runs on Forge 47.x and Java 17. Install the same Arcane Archives jar in the client and server `mods` directories. The Arsenal is disabled by default. Set `enableArsenal = true` in the world's `serverconfig/arcanearchives-server.toml` to enable gem recipes and effects.
 
+### Local builds and releases
+
+Run all builds and tests locally with Gradle to reuse the machine's cache and CPU cores. Keep GitHub Actions out of this mod's build, test, and release workflow. Publish the locally built production jar to GitHub Releases.
+
 Build the production jar with `./gradlew build`. The reobfuscated jar is written to `build/libs`. Run `./gradlew runGameTestServer` for the headless integration suite.
 
 See the [CraftTweaker guide](crafttweaker.md) to customize processing rules and add GameStages requirements.
