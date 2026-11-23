@@ -4,6 +4,7 @@ import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
 import com.aranaira.arcanearchives.crafting.GemCuttingRecipe;
 import com.aranaira.arcanearchives.crafting.RadiantCraftingTableMenu;
+import com.aranaira.arcanearchives.progression.ResonatorGrowth;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
@@ -21,6 +22,8 @@ import net.minecraft.world.item.ItemStack;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @JeiPlugin
 public final class ArchiveJeiPlugin implements IModPlugin {
@@ -29,6 +32,8 @@ public final class ArchiveJeiPlugin implements IModPlugin {
             ArcaneArchives.ID, "radiant_resonator", ResonatorCategory.Growth.class);
     @Nullable
     private static IJeiRuntime runtime;
+    private static List<ResonatorCategory.Growth> displayedGrowth = List.of();
+    private static final Set<ResonatorCategory.Growth> REGISTERED_GROWTH = new HashSet<>();
 
     @Override
     public ResourceLocation getPluginUid() {
@@ -48,9 +53,10 @@ public final class ArchiveJeiPlugin implements IModPlugin {
             var recipes = level.getRecipeManager().getAllRecipesFor(ArcaneArchives.GEM_CUTTING_TYPE.get());
             registration.addRecipes(GEM_CUTTING, recipes.stream().filter(GemCuttingRecipe::enabled).toList());
         }
-        if (ArchiveConfig.SERVER_SPEC.isLoaded()) {
-            registration.addRecipes(RESONATOR, List.of(new ResonatorCategory.Growth(ArchiveConfig.RESONATOR_TICKS.get())));
-        }
+        displayedGrowth = listGrowth();
+        REGISTERED_GROWTH.clear();
+        REGISTERED_GROWTH.addAll(displayedGrowth);
+        registration.addRecipes(RESONATOR, displayedGrowth);
     }
 
     @Override
@@ -83,6 +89,33 @@ public final class ArchiveJeiPlugin implements IModPlugin {
     @Override
     public void onRuntimeUnavailable() {
         runtime = null;
+        displayedGrowth = List.of();
+        REGISTERED_GROWTH.clear();
+    }
+
+    public static void refreshGrowth() {
+        if (runtime == null) {
+            return;
+        }
+        var updated = listGrowth();
+        if (displayedGrowth.equals(updated)) {
+            return;
+        }
+        var manager = runtime.getRecipeManager();
+        manager.hideRecipes(RESONATOR, displayedGrowth);
+        var additions = updated.stream().filter(REGISTERED_GROWTH::add).toList();
+        manager.addRecipes(RESONATOR, additions);
+        manager.unhideRecipes(RESONATOR, updated);
+        displayedGrowth = updated;
+    }
+
+    private static List<ResonatorCategory.Growth> listGrowth() {
+        var level = Minecraft.getInstance().level;
+        if (level == null || !ArchiveConfig.SERVER_SPEC.isLoaded()) {
+            return List.of();
+        }
+        return level.getRecipeManager().getAllRecipesFor(ArcaneArchives.RESONATOR_GROWTH_TYPE.get()).stream()
+                .sorted(ResonatorGrowth.ORDER).map(rule -> new ResonatorCategory.Growth(rule, rule.duration())).toList();
     }
 
     @Nullable

@@ -3,6 +3,7 @@ package com.aranaira.arcanearchives.client;
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.arsenal.ArcaneGemItem;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
+import com.aranaira.arcanearchives.integration.jei.ArchiveJeiPlugin;
 import com.aranaira.arcanearchives.storage.ArchiveNetwork;
 import com.aranaira.arcanearchives.storage.RadiantAmphoraItem;
 import com.aranaira.arcanearchives.storage.RadiantChestMenu;
@@ -13,6 +14,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.client.event.RecipesUpdatedEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -52,7 +54,14 @@ public final class ArchiveClient {
             MinecraftForge.EVENT_BUS.addListener(BrazierRangePreview::render);
             MinecraftForge.EVENT_BUS.addListener(BrazierRangePreview::logout);
             MinecraftForge.EVENT_BUS.addListener(ArchiveClient::onLeftClickEmpty);
+            if (ModList.get().isLoaded("jei")) {
+                MinecraftForge.EVENT_BUS.addListener(ArchiveClient::onRecipesUpdated);
+            }
         });
+    }
+
+    private static void onRecipesUpdated(RecipesUpdatedEvent event) {
+        ArchiveJeiPlugin.refreshGrowth();
     }
 
     private static void onLeftClickEmpty(PlayerInteractEvent.LeftClickEmpty event) {

@@ -2,6 +2,8 @@ package com.aranaira.arcanearchives.progression;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
+import com.aranaira.arcanearchives.crafting.BlockSelector;
+import com.aranaira.arcanearchives.crafting.CountedIngredient;
 import com.aranaira.arcanearchives.storage.RadiantChestBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -15,6 +17,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
@@ -26,6 +29,10 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @GameTestHolder(ArcaneArchives.ID)
 @PrefixGameTestTemplate(false)
@@ -64,12 +71,13 @@ public final class RawQuartzGameTests {
 
     @GameTest(template = "chest_fixture")
     public static void quartzShatterYield(GameTestHelper test) {
+        var rule = (QuartzBashingRule) test.getLevel().getRecipeManager().byKey(QuartzBashingRule.DEFAULT).orElseThrow();
         RandomSource rng = RandomSource.create(29);
         int singles = 0;
         int clusters = 0;
         for (int i = 0; i < 100; i++) {
             ItemStack quartz = new ItemStack(ArcaneArchives.RAW_QUARTZ.get());
-            int result = RawQuartzItem.rollSlivers(quartz, rng);
+            int result = rule.roll(quartz, rng).getCount();
             if (quartz.isEmpty()) {
                 clusters++;
                 test.assertTrue(result >= ArchiveConfig.SLIVER_CLUSTER_MIN.get() && result <= ArchiveConfig.SLIVER_CLUSTER_MAX.get(),
@@ -96,6 +104,44 @@ public final class RawQuartzGameTests {
         test.assertTrue(rawQuartz.getResultItem(registry).is(ArcaneArchives.RAW_QUARTZ.get()) && rawQuartz.getResultItem(registry).getCount() == 9
                         && shapedQuartz.getResultItem(registry).is(ArcaneArchives.SHAPED_QUARTZ.get()) && shapedQuartz.getResultItem(registry).getCount() == 9,
                 "Unpacking either quartz block should return nine matching items");
+        test.succeed();
+    }
+
+    @GameTest(template = "chest_fixture")
+    public static void conversionAcceptsScriptedCountedIngredient(GameTestHelper test) {
+        BlockPos position = new BlockPos(1, 1, 1);
+        test.setBlock(position, Blocks.TRAPPED_CHEST);
+        var oldChest = (ChestBlockEntity) test.getBlockEntity(position);
+        oldChest.setItem(0, new ItemStack(Items.OBSIDIAN, 7));
+        var player = test.makeMockSurvivalPlayer();
+        player.setShiftKeyDown(true);
+        var emeralds = new ItemStack(Items.EMERALD);
+        player.setItemInHand(InteractionHand.MAIN_HAND, emeralds);
+        BlockPos pos = test.absolutePos(position);
+        var hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
+        var manager = test.getLevel().getRecipeManager();
+        var previous = List.copyOf(manager.getRecipes());
+        var recipes = new ArrayList<>(previous);
+        var trigger = new QuartzTrigger(-1, new CountedIngredient(Ingredient.of(Items.EMERALD), 2),
+                new BlockSelector(List.of(Blocks.TRAPPED_CHEST), List.of(), List.of()));
+        recipes.add(new ChestConversionRule(ArcaneArchives.id("test/conversion"), trigger,
+                ArcaneArchives.RADIANT_CHEST.get().defaultBlockState()));
+        try {
+            manager.replaceRecipes(recipes);
+            var insufficient = new PlayerInteractEvent.RightClickBlock(player, InteractionHand.MAIN_HAND, pos, hit);
+            RawQuartzItem.convertOnBlock(insufficient);
+            test.assertTrue(!insufficient.isCanceled() && oldChest.getItem(0).getCount() == 7,
+                    "A recipe with insufficient items must leave the target and its contents unchanged");
+            emeralds.grow(2);
+            var conversion = new PlayerInteractEvent.RightClickBlock(player, InteractionHand.MAIN_HAND, pos, hit);
+            RawQuartzItem.convertOnBlock(conversion);
+            test.assertTrue(conversion.isCanceled() && conversion.getCancellationResult().consumesAction()
+                            && emeralds.getCount() == 1 && test.getBlockEntity(position) instanceof RadiantChestBlockEntity radiant
+                            && radiant.inventory().getStackInSlot(0).getCount() == 7 && player.getUUID().equals(radiant.owner()),
+                    "A counted ingredient other than Raw Quartz can convert a selected chest and preserve its contents");
+        } finally {
+            manager.replaceRecipes(previous);
+        }
         test.succeed();
     }
 }

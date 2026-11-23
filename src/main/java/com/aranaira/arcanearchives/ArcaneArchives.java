@@ -25,11 +25,14 @@ import com.aranaira.arcanearchives.monitoring.RevelationScepterItem;
 import com.aranaira.arcanearchives.network.ArchiveCommands;
 import com.aranaira.arcanearchives.network.HiveLetterItem;
 import com.aranaira.arcanearchives.progression.DirectionalQuartzBlock;
+import com.aranaira.arcanearchives.progression.ChestConversionRule;
+import com.aranaira.arcanearchives.progression.QuartzBashingRule;
 import com.aranaira.arcanearchives.progression.QuartzSliverBlock;
 import com.aranaira.arcanearchives.progression.RadiantResonatorBlock;
 import com.aranaira.arcanearchives.progression.RadiantResonatorBlockEntity;
 import com.aranaira.arcanearchives.progression.RadiantResonatorItem;
 import com.aranaira.arcanearchives.progression.RawQuartzItem;
+import com.aranaira.arcanearchives.progression.ResonatorGrowth;
 import com.aranaira.arcanearchives.storage.ArchiveNetwork;
 import com.aranaira.arcanearchives.storage.BrazierBlock;
 import com.aranaira.arcanearchives.storage.BrazierBlockEntity;
@@ -220,6 +223,18 @@ public final class ArcaneArchives {
             RECIPE_TYPES.register("stage_rule", () -> RecipeType.simple(id("stage_rule")));
     public static final RegistryObject<RecipeSerializer<StageRule>> STAGE_RULE_SERIALIZER =
             RECIPE_SERIALIZERS.register("stage_rule", StageRule.Serializer::new);
+    public static final RegistryObject<RecipeType<ResonatorGrowth>> RESONATOR_GROWTH_TYPE =
+            RECIPE_TYPES.register("resonator_growth", () -> RecipeType.simple(id("resonator_growth")));
+    public static final RegistryObject<RecipeSerializer<ResonatorGrowth>> RESONATOR_GROWTH_SERIALIZER =
+            RECIPE_SERIALIZERS.register("resonator_growth", ResonatorGrowth::serializer);
+    public static final RegistryObject<RecipeType<ChestConversionRule>> CHEST_CONVERSION_TYPE =
+            RECIPE_TYPES.register("chest_conversion", () -> RecipeType.simple(id("chest_conversion")));
+    public static final RegistryObject<RecipeSerializer<ChestConversionRule>> CHEST_CONVERSION_SERIALIZER =
+            RECIPE_SERIALIZERS.register("chest_conversion", ChestConversionRule.Serializer::new);
+    public static final RegistryObject<RecipeType<QuartzBashingRule>> QUARTZ_BASHING_TYPE =
+            RECIPE_TYPES.register("quartz_bashing", () -> RecipeType.simple(id("quartz_bashing")));
+    public static final RegistryObject<RecipeSerializer<QuartzBashingRule>> QUARTZ_BASHING_SERIALIZER =
+            RECIPE_SERIALIZERS.register("quartz_bashing", QuartzBashingRule.Serializer::new);
     public static final RegistryObject<RadiantCraftingTableBlock> RADIANT_CRAFTING_TABLE = BLOCKS.register("radiant_crafting_table",
             () -> new RadiantCraftingTableBlock(BlockBehaviour.Properties.of().strength(3.0F).sound(SoundType.GLASS)
                     .lightLevel(state -> 15).noOcclusion()));
@@ -352,7 +367,8 @@ public final class ArcaneArchives {
         MinecraftForge.EVENT_BUS.addListener(DebugOrbItem::onLeftClickBlock);
         MinecraftForge.EVENT_BUS.addListener(ArchiveCommands::register);
         MinecraftForge.EVENT_BUS.addListener(DevouringCharmItem::onItemPickup);
-        MinecraftForge.EVENT_BUS.addListener(RawQuartzItem::bashOnBlock);
+        MinecraftForge.EVENT_BUS.addListener(net.minecraftforge.eventbus.api.EventPriority.LOWEST, RawQuartzItem::bashOnBlock);
+        MinecraftForge.EVENT_BUS.addListener(net.minecraftforge.eventbus.api.EventPriority.LOWEST, RawQuartzItem::convertOnBlock);
         MinecraftForge.EVENT_BUS.addListener(HiveLetterItem::onAnvilRepair);
         MinecraftForge.EVENT_BUS.addListener(HiveLetterItem::onPlayerLogin);
         MinecraftForge.EVENT_BUS.addListener(TomeOfArcanaItem::onCraft);

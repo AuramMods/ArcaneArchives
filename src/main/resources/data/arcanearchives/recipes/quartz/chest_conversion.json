@@ -1,0 +1,5 @@
+{
+  "type": "arcanearchives:chest_conversion",
+  "input": { "item": "arcanearchives:raw_quartz" },
+  "output": { "Name": "arcanearchives:radiant_chest" }
+}

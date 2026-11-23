@@ -2,6 +2,7 @@ package com.aranaira.arcanearchives.progression;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
+import com.aranaira.arcanearchives.crafting.BlockSelector;
 import com.aranaira.arcanearchives.network.ArchiveNetworks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -17,11 +18,15 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @GameTestHolder(ArcaneArchives.ID)
@@ -37,12 +42,12 @@ public final class ResonatorGameTests {
         snapshot.putInt("current_tick", required - 1);
         resonator.load(snapshot);
         resonator.bindTo(UUID.randomUUID());
-        resonator.advance(test.getLevel(), false);
+        resonator.advance(test.getLevel(), null, false);
         test.assertTrue(test.getBlockState(pos.above()).isAir(), "An offline owner should pause growth");
         test.assertTrue(!resonator.getUpdateTag().getBoolean("can_tick"), "An offline owner must not start the client loop");
 
         test.setBlock(pos.above(), Blocks.STONE);
-        resonator.advance(test.getLevel(), true);
+        resonator.advance(test.getLevel(), null, true);
         test.assertTrue(resonator.saveWithoutMetadata().getInt("current_tick") == required - 1 && resonator.comparatorSignal() == 0,
                 "An obstruction should pause growth and suppress the comparator signal");
         test.assertTrue(!resonator.isResonating(), "An obstruction must stop the loop");
@@ -51,7 +56,7 @@ public final class ResonatorGameTests {
         replica.setLevel(test.getLevel());
         replica.load(resonator.getUpdateTag());
         test.assertTrue(replica.isResonating(), "The update tag should enable the loop for clients when the owner is online");
-        resonator.advance(test.getLevel(), true);
+        resonator.advance(test.getLevel(), null, true);
         test.assertTrue(test.getBlockState(pos.above()).is(ArcaneArchives.RAW_QUARTZ_CLUSTER.get()) && resonator.comparatorSignal() == 15,
                 "The Resonator should grow a harvestable Raw Quartz Cluster");
         test.assertTrue(!replica.isResonating(), "A ready quartz cluster must stop the loop");
@@ -92,6 +97,44 @@ public final class ResonatorGameTests {
         test.assertTrue(ArchiveNetworks.get(test.getLevel().getServer())
                         .countPersonalDevices(player.getUUID(), ArcaneArchives.RADIANT_RESONATOR_ENTITY.getId()) == limit,
                 "Placement should update the persistent personal device count");
+        test.succeed();
+    }
+
+    @GameTest(template = "chest_fixture")
+    public static void growthRuleChangesResetProgressAndUpdateComparator(GameTestHelper test) {
+        BlockPos pos = new BlockPos(1, 2, 1);
+        test.setBlock(pos, ArcaneArchives.RADIANT_RESONATOR.get());
+        test.setBlock(pos.below(), Blocks.DIAMOND_BLOCK);
+        RadiantResonatorBlockEntity resonator = (RadiantResonatorBlockEntity) test.getBlockEntity(pos);
+        var level = test.getLevel();
+        var recipes = level.getRecipeManager();
+        var original = List.copyOf(recipes.getRecipes());
+        var updated = new ArrayList<>(original);
+        var id = ArcaneArchives.id("test/resonator_growth");
+        var foundation = new BlockSelector(List.of(Blocks.DIAMOND_BLOCK), List.of(), List.of());
+        var firstOutput = Blocks.OAK_LOG.defaultBlockState().setValue(RotatedPillarBlock.AXIS, Direction.Axis.X);
+        var secondOutput = firstOutput.setValue(RotatedPillarBlock.AXIS, Direction.Axis.Z);
+        try {
+            updated.add(new ResonatorGrowth(id, new ResonatorGrowth.Settings(-1, 3, false, foundation,
+                    Optional.of(level.dimension().location()), 0, firstOutput)));
+            recipes.replaceRecipes(updated);
+            resonator.advance(level, null, false);
+            resonator.advance(level, null, false);
+            test.assertTrue(resonator.percentGrown() == 66 && resonator.comparatorSignal() == 10,
+                    "The custom rule should accrue progress without an online owner");
+            updated.set(updated.size() - 1, new ResonatorGrowth(id, new ResonatorGrowth.Settings(-1, 2, false,
+                    foundation, Optional.empty(), 0, secondOutput)));
+            recipes.replaceRecipes(updated);
+            resonator.advance(level, null, false);
+            test.assertTrue(test.getBlockState(pos.above()).isAir() && resonator.percentGrown() == 50,
+                    "A changed rule should start from zero instead of spending progress earned for the previous output");
+            resonator.advance(level, null, false);
+            test.assertTrue(test.getBlockState(pos.above()) == secondOutput && resonator.comparatorSignal() == 15
+                            && resonator.growthStatus() == RadiantResonatorBlockEntity.GrowthStatus.HARVESTABLE,
+                    "The exact configured output state should be harvestable and reach the full comparator signal");
+        } finally {
+            recipes.replaceRecipes(original);
+        }
         test.succeed();
     }
 }

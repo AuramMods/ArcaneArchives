@@ -1,6 +1,7 @@
 package com.aranaira.arcanearchives.integration.jei;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.progression.ResonatorGrowth;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -12,6 +13,8 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.text.NumberFormat;
 
@@ -53,10 +56,22 @@ final class ResonatorCategory implements IRecipeCategory<ResonatorCategory.Growt
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, Growth growth, IFocusGroup focus) {
+        var output = growth.output().getBlock();
         builder.addSlot(RecipeIngredientRole.OUTPUT, 87, 23).setOutputSlotBackground()
-                .addItemLike(ArcaneArchives.RAW_QUARTZ_CLUSTER_ITEM.get());
-        builder.addSlot(RecipeIngredientRole.OUTPUT, 112, 23).setOutputSlotBackground()
-                .addItemLike(ArcaneArchives.RAW_QUARTZ.get());
+                .addTooltipCallback((slot, tooltip) -> {
+                    if (growth.output() != output.defaultBlockState()) {
+                        tooltip.add(Component.literal(growth.output().toString()));
+                    }
+                }).addItemLike(output);
+        if (output == ArcaneArchives.RAW_QUARTZ_CLUSTER.get()) {
+            builder.addSlot(RecipeIngredientRole.OUTPUT, 112, 23).setOutputSlotBackground()
+                    .addItemLike(ArcaneArchives.RAW_QUARTZ.get());
+        }
+    }
+
+    @Override
+    public ResourceLocation getRegistryName(Growth growth) {
+        return growth.rule().id();
     }
 
     @Override
@@ -73,5 +88,9 @@ final class ResonatorCategory implements IRecipeCategory<ResonatorCategory.Growt
         }
     }
 
-    record Growth(int ticks) {}
+    record Growth(ResonatorGrowth rule, int ticks) {
+        BlockState output() {
+            return rule.settings().output();
+        }
+    }
 }

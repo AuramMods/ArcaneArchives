@@ -21,6 +21,9 @@ import static com.aranaira.arcanearchives.integration.stages.StageRule.Scope.REC
 public final class ArchiveStages {
     public static final ResourceLocation GEM_CUTTING = ArcaneArchives.id("gem_cutting");
     public static final ResourceLocation RADIANT_CRAFTING = ArcaneArchives.id("radiant_crafting");
+    public static final ResourceLocation RESONATOR_GROWTH = ArcaneArchives.id("resonator_growth");
+    public static final ResourceLocation CHEST_CONVERSION = ArcaneArchives.id("chest_conversion");
+    public static final ResourceLocation QUARTZ_BASHING = ArcaneArchives.id("quartz_bashing");
 
     private ArchiveStages() {}
 
