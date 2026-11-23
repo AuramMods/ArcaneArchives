@@ -1,66 +1,65 @@
 package com.aranaira.arcanearchives.arsenal;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
 final class GemRecharge {
     private GemRecharge() {}
 
     static boolean recharge(Player player, ArsenalGems.Source source) {
         ItemStack gem = source.stack();
-        if (!(gem.getItem() instanceof ArcaneGemItem item) || GemCharge.infinite(gem)
-                || GemCharge.remaining(gem) >= GemCharge.capacity(gem)) {
+        int charge = GemCharge.remaining(gem);
+        int missing = GemCharge.capacity(gem) - charge;
+        if (!(gem.getItem() instanceof ArcaneGemItem item) || GemCharge.infinite(gem) || missing <= 0) {
             return false;
         }
-        if (GemCharge.remaining(gem) == 0) {
-            boolean used = switch (item.type()) {
-                case SLAUGHTERGLEAM -> consume(player, source, Items.GOLD_NUGGET, 5, 12, false);
-                case MUNCHSTONE -> consume(player, source, Items.BONE_MEAL, 5, 12, false);
-                case CLEANSEGLEAM -> consume(player, source, Items.MILK_BUCKET, 1, -1, true);
-                case MINDSPINDLE -> consume(player, source, Items.BOOK, 1, -1, false);
-                case ELIXIRSPINDLE -> consume(player, source, Items.NETHER_WART, 5, 1, false);
-                case PHOENIXWAY -> consume(player, source, Items.GUNPOWDER, 3, 25, false);
-                default -> false;
-            };
-            if (used) {
-                return true;
+        var level = player.level();
+        var rules = level.getRecipeManager().getAllRecipesFor(ArcaneArchives.INVENTORY_RECHARGE_TYPE.get()).stream()
+                .sorted(InventoryRechargeRule.ORDER).toList();
+        for (var rule : rules) {
+            if ((rule.emptyOnly() && charge != 0) || !rule.gems().matches(level, item.type())) {
+                continue;
             }
-        }
-
-        ItemStack rainbow = ItemStack.EMPTY;
-        for (ItemStack stack : player.getInventory().items) {
-            if (stack.is(ArcaneArchives.CHROMATIC_POWDER.get()) && ChromaticPowderItem.color(stack) == item.type().color) {
-                return use(player, source, stack, 1, -1, false);
-            }
-            if (stack.is(ArcaneArchives.FULL_SPECTRUM_POWDER.get())) {
-                rainbow = stack;
-            }
-        }
-        return !rainbow.isEmpty() && use(player, source, rainbow, 1, -1, false);
-    }
-
-    private static boolean consume(Player player, ArsenalGems.Source source, Item item, int maximum, int charge, boolean bucket) {
-        for (ItemStack stack : player.getInventory().items) {
-            if (stack.is(item)) {
-                return use(player, source, stack, Math.min(maximum, stack.getCount()), charge, bucket);
+            ItemStack input = findIngredient(player, item.type(), rule);
+            if (!input.isEmpty()) {
+                return ArchiveStages.allowsGemRecharge(level, player, item.type(), ArchiveStages.INVENTORY_RECHARGE, rule.id())
+                        && use(player, source, input, rule, missing);
             }
         }
         return false;
     }
 
-    private static boolean use(Player player, ArsenalGems.Source source, ItemStack stack, int count, int charge, boolean bucket) {
+    private static ItemStack findIngredient(Player player, GemType gem, InventoryRechargeRule rule) {
+        var items = player.getInventory().items;
+        for (int i = 0; i < items.size(); i++) {
+            ItemStack stack = items.get(rule.preferLastSlot() ? items.size() - 1 - i : i);
+            if (rule.matches(player.level(), gem, stack)) {
+                return stack;
+            }
+        }
+        return ItemStack.EMPTY;
+    }
+
+    private static boolean use(Player player, ArsenalGems.Source source, ItemStack stack, InventoryRechargeRule rule, int missing) {
+        int count = Math.min(rule.maximum(), stack.getCount());
         Component ingredient = stack.getHoverName();
         stack.shrink(count);
-        if (bucket) {
-            player.getInventory().placeItemBackInInventory(new ItemStack(Items.BUCKET, count));
+        ItemStack remainder = rule.remainder();
+        if (!remainder.isEmpty()) {
+            int amount = remainder.getCount() * count;
+            while (amount > 0) {
+                int batch = Math.min(remainder.getMaxStackSize(), amount);
+                player.getInventory().placeItemBackInInventory(remainder.copyWithCount(batch));
+                amount -= batch;
+            }
         }
-        ArsenalGems.restore(source, charge < 0 ? -1 : charge * count);
+        int restored = rule.chargePerItem() == -1 ? missing : (int) Math.min(missing, (long) rule.chargePerItem() * count);
+        ArsenalGems.restore(source, restored);
         player.displayClientMessage(Component.translatable("message.arcanearchives.gem.recharged", count, ingredient,
                 source.stack().getHoverName()), true);
         player.level().playSound(null, player.blockPosition(), SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.PLAYERS, 1, 1);

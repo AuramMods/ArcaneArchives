@@ -1,0 +1,10 @@
+{
+  "type": "arcanearchives:natural_recharge",
+  "gems": {
+    "gems": [
+      "switchgleam"
+    ]
+  },
+  "trigger": "enderman_teleport",
+  "charge": 3
+}

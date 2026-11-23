@@ -1,0 +1,14 @@
+{
+  "type": "arcanearchives:inventory_recharge",
+  "gems": {
+    "gems": [
+      "elixirspindle"
+    ]
+  },
+  "input": {
+    "item": "minecraft:nether_wart"
+  },
+  "maximum": 5,
+  "charge_per_item": 1,
+  "empty_only": true
+}

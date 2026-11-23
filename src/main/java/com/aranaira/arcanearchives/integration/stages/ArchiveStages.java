@@ -1,6 +1,7 @@
 package com.aranaira.arcanearchives.integration.stages;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
+import com.aranaira.arcanearchives.arsenal.GemType;
 import com.blamejared.recipestages.RecipeStagesUtil;
 import net.darkhax.gamestages.GameStageHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -24,6 +25,10 @@ public final class ArchiveStages {
     public static final ResourceLocation RESONATOR_GROWTH = ArcaneArchives.id("resonator_growth");
     public static final ResourceLocation CHEST_CONVERSION = ArcaneArchives.id("chest_conversion");
     public static final ResourceLocation QUARTZ_BASHING = ArcaneArchives.id("quartz_bashing");
+    public static final ResourceLocation INVENTORY_RECHARGE = ArcaneArchives.id("inventory_recharge");
+    public static final ResourceLocation NATURAL_RECHARGE = ArcaneArchives.id("natural_recharge");
+    public static final ResourceLocation ARSENAL_RECHARGE = ArcaneArchives.id("arsenal/recharge");
+    public static final ResourceLocation ARSENAL_CAST = ArcaneArchives.id("arsenal/cast");
 
     private ArchiveStages() {}
 
@@ -51,6 +56,18 @@ public final class ArchiveStages {
     public static boolean allowsRadiantCrafting(Player player, CraftingRecipe recipe) {
         return allowsRecipe(player.level(), player, RADIANT_CRAFTING, recipe.getId())
                 && (!ModList.get().isLoaded("recipestages") || RecipeStagesAccess.allows(recipe, player));
+    }
+
+    public static boolean allowsGemRecharge(Level level, @Nullable Player actor, GemType gem, ResourceLocation family,
+                                            ResourceLocation recipe) {
+        return allowsFeature(level, actor, ARSENAL_RECHARGE)
+                && allowsFeature(level, actor, ArcaneArchives.id("arsenal/" + gem.id() + "/recharge"))
+                && allowsRecipe(level, actor, family, recipe);
+    }
+
+    public static boolean allowsGemCast(Level level, @Nullable Player actor, GemType gem) {
+        return allowsFeature(level, actor, ARSENAL_CAST)
+                && allowsFeature(level, actor, ArcaneArchives.id("arsenal/" + gem.id() + "/cast"));
     }
 
     private static boolean allows(Level level, @Nullable Player actor, StageRule.Scope scope, ResourceLocation target) {

@@ -1,0 +1,11 @@
+{
+  "type": "arcanearchives:natural_recharge",
+  "gems": {
+    "gems": [
+      "agegleam"
+    ]
+  },
+  "trigger": "timer",
+  "charge": 1,
+  "ticks": 3600
+}

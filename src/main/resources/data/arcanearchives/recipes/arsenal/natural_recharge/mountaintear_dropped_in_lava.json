@@ -1,0 +1,10 @@
+{
+  "type": "arcanearchives:natural_recharge",
+  "gems": {
+    "gems": [
+      "mountaintear"
+    ]
+  },
+  "trigger": "dropped_in_lava",
+  "charge": -1
+}

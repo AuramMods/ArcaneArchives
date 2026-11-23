@@ -1,0 +1,10 @@
+{
+  "type": "arcanearchives:natural_recharge",
+  "gems": {
+    "gems": [
+      "rivertear"
+    ]
+  },
+  "trigger": "dropped_in_water",
+  "charge": -1
+}

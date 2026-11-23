@@ -22,6 +22,8 @@ import net.minecraft.world.level.LevelReader;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import static com.aranaira.arcanearchives.arsenal.NaturalRechargeRule.Trigger.*;
+
 public final class ArcaneGemItem extends Item {
     private final GemType type;
 
@@ -65,17 +67,15 @@ public final class ArcaneGemItem extends Item {
 
     @Override
     public boolean onEntityItemUpdate(ItemStack stack, ItemEntity entity) {
-        if (!entity.level().isClientSide && ArchiveConfig.ARSENAL_ENABLED.get()) {
-            boolean recharge = switch (type) {
-                case MOUNTAINTEAR -> entity.isInLava();
-                case RIVERTEAR -> entity.isInWater();
-                case STORMWAY -> entity.level().isRainingAt(entity.blockPosition());
-                default -> false;
-            };
-            if (recharge && GemCharge.remaining(stack) < GemCharge.capacity(stack)) {
-                var recharged = stack.copy();
-                GemCharge.restore(recharged, -1);
-                entity.setItem(recharged);
+        if (!entity.level().isClientSide && ArchiveConfig.ARSENAL_ENABLED.get()
+                && GemCharge.remaining(stack) < GemCharge.capacity(stack)) {
+            var recharged = stack.copy();
+            var source = new ArsenalGems.Source(recharged, () -> entity.setItem(recharged));
+            var owner = entity.getOwner() instanceof Player player ? player : null;
+            var level = entity.level();
+            if ((entity.isInLava() && NaturalRecharge.apply(level, owner, source, DROPPED_IN_LAVA, 0))
+                    || (entity.isInWater() && NaturalRecharge.apply(level, owner, source, DROPPED_IN_WATER, 0))
+                    || (level.isRainingAt(entity.blockPosition()) && NaturalRecharge.apply(level, owner, source, DROPPED_IN_RAIN, 0))) {
                 entity.level().playSound(null, entity.blockPosition(), SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.PLAYERS, 1, .5F);
             }
         }

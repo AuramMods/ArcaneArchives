@@ -1,0 +1,10 @@
+{
+  "type": "arcanearchives:natural_recharge",
+  "gems": {
+    "gems": [
+      "stormway"
+    ]
+  },
+  "trigger": "dropped_in_rain",
+  "charge": -1
+}

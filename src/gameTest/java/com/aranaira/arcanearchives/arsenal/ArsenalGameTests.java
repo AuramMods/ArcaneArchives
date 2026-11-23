@@ -2,6 +2,7 @@ package com.aranaira.arcanearchives.arsenal;
 
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
+import com.aranaira.arcanearchives.crafting.CountedIngredient;
 import com.aranaira.arcanearchives.crafting.GemCuttingRecipe;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
@@ -23,6 +24,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -38,6 +40,9 @@ import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @GameTestHolder(ArcaneArchives.ID)
@@ -99,6 +104,41 @@ public final class ArsenalGameTests {
             test.assertTrue(!menu.quickMoveStack(player, 37).isEmpty() && player.getOffhandItem().is(ArcaneArchives.GEMS.get(GemType.SALVEGLEAM).get())
                     && GemSocketItem.gem(socket).isEmpty(), "Using shift-click to remove the gem prefers the offhand and clears the persisted slot");
         });
+        test.succeed();
+    }
+
+    @GameTest(template = "chest_fixture")
+    public static void customGemTagsChangeRechargeMatching(GameTestHelper test) {
+        var level = test.getLevel();
+        var player = player(test);
+        var inventory = player.getInventory();
+        var gem = gem(GemType.SALVEGLEAM, 0);
+        var powder = ArcaneArchives.CHROMATIC_POWDER.get().of(GemType.Color.BLUE);
+        inventory.setItem(0, gem);
+        inventory.setItem(1, powder);
+        var source = ArsenalGems.held(player, gem);
+        var manager = level.getRecipeManager();
+        var original = List.copyOf(manager.getRecipes());
+        var recipes = new ArrayList<>(original);
+        var tag = ArcaneArchives.id("test/recharge");
+        var tagKey = ArchiveTag.Domain.CUT.key(tag);
+        var selector = new GemSelector(List.of(), Optional.empty(), Optional.of(tag), Optional.empty());
+        var input = new CountedIngredient(Ingredient.of(ArcaneArchives.CHROMATIC_POWDER.get()), 1);
+        recipes.add(new InventoryRechargeRule(ArcaneArchives.id("test/recharge"), -10, selector, input, 1, 7,
+                false, false, null, ItemStack.EMPTY, false));
+        try {
+            recipes.add(new ArchiveTag(tagKey, new ArchiveTag.Content(ArchiveTag.Domain.CUT, List.of("oval"))));
+            manager.replaceRecipes(recipes);
+            test.assertTrue(!GemRecharge.recharge(player, source) && powder.getCount() == 1 && GemCharge.remaining(gem) == 0,
+                    "A custom rule must reject a gem whose cut is absent from its tag");
+            recipes.set(recipes.size() - 1, new ArchiveTag(tagKey,
+                    new ArchiveTag.Content(ArchiveTag.Domain.CUT, List.of("asscher"))));
+            manager.replaceRecipes(recipes);
+            test.assertTrue(GemRecharge.recharge(player, source) && powder.isEmpty() && GemCharge.remaining(gem) == 7,
+                    "Changing tag membership must change the same rule without replacing it");
+        } finally {
+            manager.replaceRecipes(original);
+        }
         test.succeed();
     }
 

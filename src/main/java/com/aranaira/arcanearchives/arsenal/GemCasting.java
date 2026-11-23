@@ -3,6 +3,7 @@ package com.aranaira.arcanearchives.arsenal;
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
 import com.aranaira.arcanearchives.integration.botania.BotaniaRivertear;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -57,6 +58,9 @@ final class GemCasting {
     static void cast(ServerPlayer player, GemType type, ArsenalGems.Source gem) {
         if (!GemCharge.available(gem.stack(), 1)) {
             GemRecharge.recharge(player, gem);
+            return;
+        }
+        if (!ArchiveStages.allowsGemCast(player.level(), player, type)) {
             return;
         }
         switch (type) {
@@ -213,6 +217,9 @@ final class GemCasting {
         if (!GemCharge.available(stack, 1)) {
             GemRecharge.recharge(player, gem);
             return InteractionResult.CONSUME;
+        }
+        if (!ArchiveStages.allowsGemCast(level, player, type)) {
+            return InteractionResult.FAIL;
         }
         if (type == GemType.ORDERSTONE) {
             int cost = current.is(BlockTags.ANVIL) ? 25 : current.is(Blocks.STONE_BRICKS) ? 4 : 1;

@@ -1,0 +1,12 @@
+{
+  "type": "arcanearchives:natural_recharge",
+  "gems": {
+    "gems": [
+      "salvegleam"
+    ]
+  },
+  "trigger": "animal_kill",
+  "charge": 0,
+  "scale": 0.5,
+  "toggle_when_full": true
+}

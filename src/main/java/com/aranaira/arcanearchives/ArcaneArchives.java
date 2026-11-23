@@ -1,11 +1,14 @@
 package com.aranaira.arcanearchives;
 
 import com.aranaira.arcanearchives.arsenal.ArcaneGemItem;
+import com.aranaira.arcanearchives.arsenal.ArchiveTag;
 import com.aranaira.arcanearchives.arsenal.ChromaticPowderItem;
 import com.aranaira.arcanearchives.arsenal.FakeAirBlock;
 import com.aranaira.arcanearchives.arsenal.GemSocketItem;
 import com.aranaira.arcanearchives.arsenal.GemSocketMenu;
 import com.aranaira.arcanearchives.arsenal.GemType;
+import com.aranaira.arcanearchives.arsenal.InventoryRechargeRule;
+import com.aranaira.arcanearchives.arsenal.NaturalRechargeRule;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
 import com.aranaira.arcanearchives.crafting.GemCuttersTableBlock;
 import com.aranaira.arcanearchives.crafting.GemCuttersTableBlockEntity;
@@ -235,6 +238,18 @@ public final class ArcaneArchives {
             RECIPE_TYPES.register("quartz_bashing", () -> RecipeType.simple(id("quartz_bashing")));
     public static final RegistryObject<RecipeSerializer<QuartzBashingRule>> QUARTZ_BASHING_SERIALIZER =
             RECIPE_SERIALIZERS.register("quartz_bashing", QuartzBashingRule.Serializer::new);
+    public static final RegistryObject<RecipeType<ArchiveTag>> ARCHIVE_TAG_TYPE =
+            RECIPE_TYPES.register("arsenal_tag", () -> RecipeType.simple(id("arsenal_tag")));
+    public static final RegistryObject<RecipeSerializer<ArchiveTag>> ARCHIVE_TAG_SERIALIZER =
+            RECIPE_SERIALIZERS.register("arsenal_tag", ArchiveTag::serializer);
+    public static final RegistryObject<RecipeType<InventoryRechargeRule>> INVENTORY_RECHARGE_TYPE =
+            RECIPE_TYPES.register("inventory_recharge", () -> RecipeType.simple(id("inventory_recharge")));
+    public static final RegistryObject<RecipeSerializer<InventoryRechargeRule>> INVENTORY_RECHARGE_SERIALIZER =
+            RECIPE_SERIALIZERS.register("inventory_recharge", InventoryRechargeRule.Serializer::new);
+    public static final RegistryObject<RecipeType<NaturalRechargeRule>> NATURAL_RECHARGE_TYPE =
+            RECIPE_TYPES.register("natural_recharge", () -> RecipeType.simple(id("natural_recharge")));
+    public static final RegistryObject<RecipeSerializer<NaturalRechargeRule>> NATURAL_RECHARGE_SERIALIZER =
+            RECIPE_SERIALIZERS.register("natural_recharge", NaturalRechargeRule::serializer);
     public static final RegistryObject<RadiantCraftingTableBlock> RADIANT_CRAFTING_TABLE = BLOCKS.register("radiant_crafting_table",
             () -> new RadiantCraftingTableBlock(BlockBehaviour.Properties.of().strength(3.0F).sound(SoundType.GLASS)
                     .lightLevel(state -> 15).noOcclusion()));

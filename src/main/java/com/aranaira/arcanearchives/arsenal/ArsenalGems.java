@@ -1,6 +1,7 @@
 package com.aranaira.arcanearchives.arsenal;
 
 import com.aranaira.arcanearchives.config.ArchiveConfig;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -51,7 +52,9 @@ public final class ArsenalGems {
     public static void toggleHeld(Player player) {
         if (ArchiveConfig.ARSENAL_ENABLED.get() && !player.isSpectator()) {
             ItemStack stack = player.getMainHandItem();
-            GemCharge.toggle(stack, !GemCharge.toggled(stack));
+            if (stack.getItem() instanceof ArcaneGemItem gem && ArchiveStages.allowsGemCast(player.level(), player, gem.type())) {
+                GemCharge.toggle(stack, !GemCharge.toggled(stack));
+            }
         }
     }
 

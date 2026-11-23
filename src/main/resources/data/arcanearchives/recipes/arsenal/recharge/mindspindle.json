@@ -1,0 +1,14 @@
+{
+  "type": "arcanearchives:inventory_recharge",
+  "gems": {
+    "gems": [
+      "mindspindle"
+    ]
+  },
+  "input": {
+    "item": "minecraft:book"
+  },
+  "maximum": 1,
+  "charge_per_item": -1,
+  "empty_only": true
+}

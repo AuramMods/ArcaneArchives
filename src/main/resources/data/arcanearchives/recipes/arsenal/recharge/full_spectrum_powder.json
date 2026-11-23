@@ -1,0 +1,8 @@
+{
+  "type": "arcanearchives:inventory_recharge",
+  "input": {
+    "item": "arcanearchives:full_spectrum_chromatic_powder"
+  },
+  "order": 20,
+  "prefer_last_slot": true
+}

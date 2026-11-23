@@ -1,0 +1,14 @@
+{
+  "type": "arcanearchives:inventory_recharge",
+  "gems": {
+    "gems": [
+      "slaughtergleam"
+    ]
+  },
+  "input": {
+    "item": "minecraft:gold_nugget"
+  },
+  "maximum": 5,
+  "charge_per_item": 12,
+  "empty_only": true
+}

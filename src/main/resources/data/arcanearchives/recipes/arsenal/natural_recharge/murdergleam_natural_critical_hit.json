@@ -1,0 +1,11 @@
+{
+  "type": "arcanearchives:natural_recharge",
+  "gems": {
+    "gems": [
+      "murdergleam"
+    ]
+  },
+  "trigger": "natural_critical_hit",
+  "charge": 3,
+  "toggle_when_full": true
+}

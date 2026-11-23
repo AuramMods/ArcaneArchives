@@ -1,0 +1,11 @@
+{
+  "type": "arcanearchives:natural_recharge",
+  "gems": {
+    "gems": [
+      "orderstone"
+    ]
+  },
+  "trigger": "experience_pickup",
+  "charge": 0,
+  "scale": 1.0
+}

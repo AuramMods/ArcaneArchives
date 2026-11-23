@@ -3,6 +3,7 @@ package com.aranaira.arcanearchives.arsenal;
 import com.aranaira.arcanearchives.ArcaneArchives;
 import com.aranaira.arcanearchives.config.ArchiveConfig;
 import com.aranaira.arcanearchives.integration.botania.BotaniaRivertear;
+import com.aranaira.arcanearchives.integration.stages.ArchiveStages;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -38,6 +39,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
+import static com.aranaira.arcanearchives.arsenal.NaturalRechargeRule.Trigger.*;
+
 @Mod.EventBusSubscriber(modid = ArcaneArchives.ID)
 public final class ArsenalEvents {
     private static final Map<LivingEntity, LootingBonus> DEATH_LOOTING = new WeakHashMap<>();
@@ -48,7 +51,7 @@ public final class ArsenalEvents {
     public static void onApothecaryUse(PlayerInteractEvent.RightClickBlock event) {
         if (event.getEntity() instanceof ServerPlayer player && !player.isSpectator() && event.getUseBlock() != Event.Result.DENY
                 && ArchiveConfig.ARSENAL_ENABLED.get() && ModList.get().isLoaded("botania")
-                && player.mayInteract(player.serverLevel(), event.getPos())) {
+                && player.mayInteract(player.serverLevel(), event.getPos()) && allowsCast(player, GemType.RIVERTEAR)) {
             BotaniaRivertear.fill(player, event.getPos());
         }
     }
@@ -57,7 +60,8 @@ public final class ArsenalEvents {
     public static void onLooting(LootingLevelEvent event) {
         if (event.getDamageSource() != null && event.getDamageSource().getEntity() instanceof ServerPlayer player) {
             LootingBonus deathBonus = DEATH_LOOTING.get(event.getEntity());
-            int bonus = deathBonus != null && deathBonus.player().equals(player.getUUID()) ? deathBonus.amount()
+            int bonus = !allowsCast(player, GemType.SLAUGHTERGLEAM) ? 0
+                    : deathBonus != null && deathBonus.player().equals(player.getUUID()) ? deathBonus.amount()
                     : (int) ArsenalGems.available(player).stream().filter(gem -> gem.is(GemType.SLAUGHTERGLEAM)
                             && GemCharge.available(gem.stack(), 1)).count();
             event.setLootingLevel(event.getLootingLevel() + bonus);
@@ -69,14 +73,13 @@ public final class ArsenalEvents {
         if (event.getSource().getEntity() instanceof ServerPlayer player) {
             int bonus = 0;
             for (var gem : ArsenalGems.available(player)) {
-                if (gem.is(GemType.SLAUGHTERGLEAM) && GemCharge.available(gem.stack(), 1)) {
+                if (gem.is(GemType.SLAUGHTERGLEAM) && allowsCast(player, GemType.SLAUGHTERGLEAM)
+                        && GemCharge.available(gem.stack(), 1)) {
                     bonus++;
                     ArsenalGems.spend(player, gem, 1);
-                } else if (gem.is(GemType.SALVEGLEAM) && event.getEntity() instanceof Animal) {
-                    ArsenalGems.restore(gem, (int) event.getEntity().getMaxHealth() / 2);
-                    if (GemCharge.remaining(gem.stack()) == GemCharge.capacity(gem.stack())) {
-                        ArsenalGems.toggle(gem, true);
-                    }
+                }
+                if (event.getEntity() instanceof Animal) {
+                    NaturalRecharge.apply(player.level(), player, gem, ANIMAL_KILL, event.getEntity().getMaxHealth());
                 }
             }
             // Forge can evaluate looting more than once after the gems have paid for this kill.
@@ -92,11 +95,9 @@ public final class ArsenalEvents {
             return;
         }
         for (var gem : ArsenalGems.available(player)) {
-            if (!gem.is(GemType.MURDERGLEAM)) {
-                continue;
-            }
             var stack = gem.stack();
-            if (GemCharge.toggled(stack) && GemCharge.available(stack, 1)) {
+            if (gem.is(GemType.MURDERGLEAM) && allowsCast(player, GemType.MURDERGLEAM)
+                    && GemCharge.toggled(stack) && GemCharge.available(stack, 1)) {
                 event.setResult(Event.Result.ALLOW);
                 event.setDamageModifier(Math.max(1.5F, event.getDamageModifier()));
                 ArsenalGems.spend(player, gem, 1);
@@ -106,10 +107,7 @@ public final class ArsenalEvents {
                 break;
             }
             if (event.isVanillaCritical()) {
-                ArsenalGems.restore(gem, 3);
-                if (GemCharge.remaining(stack) == GemCharge.capacity(stack)) {
-                    ArsenalGems.toggle(gem, true);
-                }
+                NaturalRecharge.apply(player.level(), player, gem, NATURAL_CRITICAL_HIT, 0);
             }
         }
     }
@@ -122,28 +120,20 @@ public final class ArsenalEvents {
         long time = player.serverLevel().getGameTime();
         for (var gem : ArsenalGems.available(player)) {
             var stack = gem.stack();
-            if (gem.is(GemType.SALVEGLEAM) && player.getHealth() < player.getMaxHealth() && GemCharge.toggled(stack)
+            if (gem.is(GemType.SALVEGLEAM) && allowsCast(player, GemType.SALVEGLEAM)
+                    && player.getHealth() < player.getMaxHealth() && GemCharge.toggled(stack)
                     && GemCharge.available(stack, 1) && GemCharge.cooldown(stack, "last_pulse", time, 20)) {
                 player.heal(1);
                 ArsenalGems.spend(player, gem, 1);
                 if (!GemCharge.available(stack, 1)) {
                     ArsenalGems.toggle(gem, false);
                 }
-            } else if (gem.is(GemType.STORMWAY) && GemCharge.remaining(stack) < GemCharge.capacity(stack)
-                    && player.serverLevel().isRainingAt(player.blockPosition())) {
-                ArsenalGems.restore(gem, -1);
-                player.serverLevel().playSound(null, player.blockPosition(), SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.PLAYERS, 1, 1);
-            } else if (gem.is(GemType.AGEGLEAM) && GemCharge.remaining(stack) < GemCharge.capacity(stack)) {
-                int ticks = stack.getOrCreateTag().getInt("recharge");
-                if (ticks <= 1 && stack.getTag().contains("recharge")) {
-                    GemCharge.restore(stack, 1);
-                    ticks = 3601;
-                } else if (ticks <= 1) {
-                    ticks = 3601;
-                }
-                stack.getTag().putInt("recharge", ticks - 1);
-                gem.changed().run();
             }
+            if (GemCharge.remaining(stack) < GemCharge.capacity(stack) && player.serverLevel().isRainingAt(player.blockPosition())
+                    && NaturalRecharge.apply(player.level(), player, gem, HELD_IN_RAIN, 0)) {
+                player.serverLevel().playSound(null, player.blockPosition(), SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.PLAYERS, 1, 1);
+            }
+            NaturalRecharge.tick(player, gem);
         }
     }
 
@@ -155,9 +145,9 @@ public final class ArsenalEvents {
         int value = event.getOrb().value;
         boolean amplified = false;
         for (var gem : ArsenalGems.available(player)) {
-            if (gem.is(GemType.ORDERSTONE)) {
-                ArsenalGems.restore(gem, value);
-            } else if (gem.is(GemType.MINDSPINDLE) && !amplified && GemCharge.available(gem.stack(), 1)) {
+            NaturalRecharge.apply(player.level(), player, gem, EXPERIENCE_PICKUP, value);
+            if (gem.is(GemType.MINDSPINDLE) && allowsCast(player, GemType.MINDSPINDLE)
+                    && !amplified && GemCharge.available(gem.stack(), 1)) {
                 int used = GemCharge.infinite(gem.stack()) ? value : Math.min(value, GemCharge.remaining(gem.stack()));
                 event.getOrb().value = value + Math.round(used * .5F);
                 ArsenalGems.spend(player, gem, used);
@@ -172,10 +162,10 @@ public final class ArsenalEvents {
             boolean stopped = false;
             for (var player : enderman.level().getEntitiesOfClass(ServerPlayer.class, enderman.getBoundingBox().inflate(10.5))) {
                 for (var gem : ArsenalGems.available(player)) {
-                    if (gem.is(GemType.SWITCHGLEAM)) {
-                        ArsenalGems.restore(gem, 3);
+                    if (gem.is(GemType.SWITCHGLEAM) && allowsCast(player, GemType.SWITCHGLEAM)) {
                         stopped = true;
                     }
+                    NaturalRecharge.apply(player.level(), player, gem, ENDERMAN_TELEPORT, 0);
                 }
             }
             if (stopped) {
@@ -192,14 +182,14 @@ public final class ArsenalEvents {
         var level = player.serverLevel();
         for (var gem : ArsenalGems.available(player)) {
             var stack = gem.stack();
-            if (gem.is(GemType.PHOENIXWAY) && event.getSource().is(DamageTypeTags.IS_FIRE)
+            if (gem.is(GemType.PHOENIXWAY) && allowsCast(player, GemType.PHOENIXWAY) && event.getSource().is(DamageTypeTags.IS_FIRE)
                     && !player.hasEffect(MobEffects.FIRE_RESISTANCE) && GemCharge.available(stack, 12)) {
                 player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 600));
                 ArsenalGems.spend(player, gem, 12);
                 event.setCanceled(true);
                 return;
             }
-            if (gem.is(GemType.STORMWAY) && GemCharge.toggled(stack) && GemCharge.available(stack, 1)
+            if (gem.is(GemType.STORMWAY) && allowsCast(player, GemType.STORMWAY) && GemCharge.toggled(stack) && GemCharge.available(stack, 1)
                     && event.getSource().is(DamageTypeTags.IS_PROJECTILE) && event.getSource().getEntity() instanceof Mob attacker
                     && attacker.isAlive() && GemCasting.lightning(level, attacker.position().add(0, .5, 0), player, false)) {
                 var effect = attacker.isInvertedHealAndHarm() ? MobEffects.HEAL : MobEffects.HARM;
@@ -217,7 +207,7 @@ public final class ArsenalEvents {
         }
         long time = player.serverLevel().getGameTime();
         for (var gem : ArsenalGems.available(player)) {
-            if (gem.is(GemType.STORMWAY) && GemCharge.available(gem.stack(), 6)
+            if (gem.is(GemType.STORMWAY) && allowsCast(player, GemType.STORMWAY) && GemCharge.available(gem.stack(), 6)
                     && GemCharge.cooldown(gem.stack(), "last_strike", time, 20)) {
                 player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 1200, 2));
                 player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 1200));
@@ -285,7 +275,14 @@ public final class ArsenalEvents {
     }
 
     private static ArsenalGems.Source potionGem(net.minecraft.world.entity.player.Player player) {
+        if (!allowsCast(player, GemType.ELIXIRSPINDLE)) {
+            return null;
+        }
         return ArsenalGems.available(player).stream().filter(gem -> gem.is(GemType.ELIXIRSPINDLE)
                 && GemCharge.available(gem.stack(), 1)).findFirst().orElse(null);
+    }
+
+    private static boolean allowsCast(net.minecraft.world.entity.player.Player player, GemType gem) {
+        return ArchiveStages.allowsGemCast(player.level(), player, gem);
     }
 }

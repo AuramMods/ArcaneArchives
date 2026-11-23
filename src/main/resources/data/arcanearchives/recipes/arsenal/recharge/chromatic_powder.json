@@ -1,0 +1,8 @@
+{
+  "type": "arcanearchives:inventory_recharge",
+  "input": {
+    "item": "arcanearchives:chromatic_powder"
+  },
+  "order": 10,
+  "match_gem_color": true
+}

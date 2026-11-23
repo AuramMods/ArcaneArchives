@@ -1,0 +1,14 @@
+{
+  "type": "arcanearchives:inventory_recharge",
+  "gems": {
+    "gems": [
+      "phoenixway"
+    ]
+  },
+  "input": {
+    "item": "minecraft:gunpowder"
+  },
+  "maximum": 3,
+  "charge_per_item": 25,
+  "empty_only": true
+}

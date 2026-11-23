@@ -1,0 +1,17 @@
+{
+  "type": "arcanearchives:inventory_recharge",
+  "gems": {
+    "gems": [
+      "cleansegleam"
+    ]
+  },
+  "input": {
+    "item": "minecraft:milk_bucket"
+  },
+  "maximum": 1,
+  "charge_per_item": -1,
+  "empty_only": true,
+  "remainder": {
+    "item": "minecraft:bucket"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "type": "arcanearchives:inventory_recharge",
+  "gems": {
+    "gems": [
+      "munchstone"
+    ]
+  },
+  "input": {
+    "item": "minecraft:bone_meal"
+  },
+  "maximum": 5,
+  "charge_per_item": 12,
+  "empty_only": true
+}
