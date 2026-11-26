@@ -1,0 +1,13 @@
+{
+  "title": {
+    "translate": "arcanearchives.tip.title"
+  },
+  "tip": {
+    "translate": "arcanearchives.tip.manifest_hotkey",
+    "with": [
+      {
+        "keybind": "arcanearchives.gui.keybinds.manifest"
+      }
+    ]
+  }
+}
